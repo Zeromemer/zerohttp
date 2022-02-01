@@ -10,9 +10,5 @@ $(exec): $(objects)
 %.o: %.c include/%.h
 	gcc -c $(flags) $< -o $@
 
-install:
-	make
-	cp ./dgsh.elf /usr/local/bin/dgsh
-
 clean:
 	-rm src/*.o
