@@ -1,3 +1,4 @@
 zerohttp
 .vscode/
 *.swp
+*.o
