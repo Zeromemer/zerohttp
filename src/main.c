@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 	
 	dprintf(conn.fd, "sussy baka current unix time is %d\n", (int)time(NULL));
 
-	request req;
+	request req = {0};
 	int valid = parse_req(conn.fd, &req);
 
 	printf("%s%d:\n\tmethod: %s\n\turl: %s\n\tver: %s \n\tvalid: %d\n",

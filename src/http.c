@@ -41,7 +41,7 @@ int parse_req(int connfd, request *req) {
 	char crlf[2];
 	read(connfd, crlf, 2);
 	if (crlf[0] != '\r' || crlf[1] != '\n') { /* a crlf is expected after http version,
-						     if there is none request is invalid */
+						     if there is none the request is invalid */
 		return 0;
 
 		
