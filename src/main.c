@@ -2,8 +2,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-// #include <sys/socket.h>
-// #include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "include/tcp.h"
@@ -22,7 +20,12 @@ int main(int argc, char** argv) {
 
 	request req = parse_req(conn.fd);
 
-	printf("%s%d: %s\n", ip, conn.cli.sin_port,req.method);
+	printf("%s%d: method: %s url: %s ver: %s\n",
+			ip,
+			conn.cli.sin_port,
+			req.method,
+			req.uri,
+			req.ver);
 
 	// char* meth = dget_word(conn.fd);
 	// printf("method = %s\n", meth);

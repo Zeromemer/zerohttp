@@ -13,6 +13,7 @@ typedef struct {
 	header* headers;
 	unsigned int headers_len;
 	char* body;
+	unsigned int body_len;
 } request;
 
 request parse_req(int connfd);
