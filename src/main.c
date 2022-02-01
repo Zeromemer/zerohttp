@@ -18,14 +18,16 @@ int main(int argc, char** argv) {
 	
 	dprintf(conn.fd, "sussy baka current unix time is %d\n", (int)time(NULL));
 
-	request req = parse_req(conn.fd);
+	request req;
+	int valid = parse_req(conn.fd, &req);
 
-	printf("%s%d: method: %s url: %s ver: %s\n",
+	printf("%s%d:\n\tmethod: %s\n\turl: %s\n\tver: %s \n\tvalid: %d\n",
 			ip,
 			conn.cli.sin_port,
 			req.method,
 			req.uri,
-			req.ver);
+			req.ver,
+			valid);
 
 	// char* meth = dget_word(conn.fd);
 	// printf("method = %s\n", meth);

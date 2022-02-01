@@ -4,44 +4,48 @@
 #include <stdio.h>
 #include <unistd.h>
 
-request parse_req(int connfd) {
+int parse_req(int connfd, request *req) {
 	// getting the method and uri are not seperated into functions for performance
 
-
-	request result = {0};
-
 	// get the method
-	result.method = malloc(1);
+	req->method = malloc(1);
 	unsigned int size = 1;
 	unsigned int len = 0;
 
 	char c;
 	while ((c = dgetc(connfd)) != ' ') {
-		result.method[len] = c;
+		req->method[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			result.method = reallocarray(result.method, 1, size);
+			req->method = reallocarray(req->method, 1, size);
 		}
 	}
 
 	// get the uri
-	result.uri = malloc(1);
+	req->uri = malloc(1);
 	size = 1;
 	len = 0;
 
 	while ((c = dgetc(connfd)) != ' ') {
-		result.uri[len] = c;
+		req->uri[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			result.uri = reallocarray(result.uri, 1, size);
+			req->uri = reallocarray(req->uri, 1, size);
 		}
 	}
 
 	// get http version
-	result.ver = malloc(8);
-	read(connfd, result.ver, 8);
+	req->ver = malloc(8);
+	read(connfd, req->ver, 8);
 
+	char crlf[2];
+	read(connfd, crlf, 2);
+	if (crlf[0] != '\r' || crlf[1] != '\n') { /* a crlf is expected after http version,
+						     if there is none request is invalid */
+		return 0;
 
+		
+	}
 
-	return result;
+	return 1;
 }
