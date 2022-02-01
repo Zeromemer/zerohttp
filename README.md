@@ -1,13 +1,13 @@
-## zerohttp
+# zerohttp
 This is a very basic http server made in c
 that is still in development
 
-# Building
+## Building
 ```console
 $ make
 ```
 
-# Running
+## Running
 ```console
 $ ./zerohttp
 ```
