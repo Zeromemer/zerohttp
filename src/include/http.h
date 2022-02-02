@@ -18,4 +18,6 @@ typedef struct {
 
 int parse_req(int connfd, request *req);
 
+void free_req(request req);
+
 #endif

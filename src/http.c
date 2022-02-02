@@ -47,3 +47,15 @@ int parse_req(int connfd, request *req) {
 
 	return 1;
 }
+
+void free_req(request req) {
+	free(req.method);
+	free(req.url);
+	free(req.ver);
+	for (int i = 0; i < req.headers_len; i++) {
+		free(req.headers[i].name);
+		free(req.headers[i].value);
+	}
+	free(req.headers);
+	free(req.body);
+}
