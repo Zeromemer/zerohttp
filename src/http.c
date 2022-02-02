@@ -17,9 +17,10 @@ int parse_req(int connfd, request *req) {
 		req->method[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			req->method = xreallocarray(req->method, 1, size);
+			req->method = xrealloc(req->method, size);
 		}
 	}
+	req->method[len] = '\0';
 
 	// get the url
 	req->url = xcalloc(1, 1);
@@ -30,9 +31,10 @@ int parse_req(int connfd, request *req) {
 		req->url[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			req->url = xreallocarray(req->url, 1, size);
+			req->url = xrealloc(req->url, size);
 		}
 	}
+	req->url[len] = '\0';
 
 	// get http version
 	req->ver = xmalloc(8);

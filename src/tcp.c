@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <errno.h>
 
+/* Original not split into function code: https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/ */
+
 int create_bound_socket(int port) {
 	int sockfd;
 	struct sockaddr_in servaddr;
@@ -24,7 +26,7 @@ int create_bound_socket(int port) {
 	servaddr.sin_port = htons(port);
 
 	if ((bind(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr))) != 0) {
-		fprintf(stderr, "Could not bind socket %s\n", strerror(errno));
+		fprintf(stderr, "Could not bind socket: %s\n", strerror(errno));
 		exit(1);
 	}
 
@@ -34,7 +36,7 @@ int create_bound_socket(int port) {
 
 void socket_listen(int sockfd, int backlog) {
 	if (listen(sockfd, backlog)) {
-		fprintf(stderr, "Could not listen to socket");
+		fprintf(stderr, "Could not listen to socket: %s\n", strerror(errno));
 		exit(1);
 	}
 }
@@ -44,6 +46,10 @@ conn_t await_connection(int sockfd) {
 	result.len = sizeof(result.cli);
 	
 	result.fd = accept(sockfd, (struct sockaddr*)&result.cli, &result.len);
-
+	if (result.fd < 0) {
+		fprintf(stderr, "Could not accept client: %s\n", strerror(errno));
+		exit(1);
+	}
+	
 	return result;
 }
