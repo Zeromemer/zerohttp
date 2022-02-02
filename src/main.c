@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 		conn_t conn = await_connection(sockfd);
 		char *ip = inet_ntoa(conn.cli.sin_addr);
 
-		request req = {0};
+		req_t req = {0};
 		int valid = parse_req(conn.fd, &req);
 
 		printf("%s:%d:\n\tmethod: %s\n\turl: %s\n\tver: %s \n\tvalid: %d\n",

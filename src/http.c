@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int parse_req(int connfd, request *req) {
+int parse_req(int connfd, req_t *req) {
 	// getting the method and uri are not seperated into functions for performance
 
 	// get the method
@@ -50,7 +50,7 @@ int parse_req(int connfd, request *req) {
 	return 1;
 }
 
-void free_req(request req) {
+void free_req(req_t req) {
 	free(req.method);
 	free(req.url);
 	free(req.ver);
