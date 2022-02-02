@@ -8,7 +8,7 @@ int parse_req(int connfd, request *req) {
 	// getting the method and uri are not seperated into functions for performance
 
 	// get the method
-	req->method = malloc(1);
+	req->method = xcalloc(1, 1);
 	unsigned int size = 1;
 	unsigned int len = 0;
 
@@ -17,12 +17,12 @@ int parse_req(int connfd, request *req) {
 		req->method[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			req->method = reallocarray(req->method, 1, size);
+			req->method = xreallocarray(req->method, 1, size);
 		}
 	}
 
-	// get the uri
-	req->url = malloc(1);
+	// get the url
+	req->url = xcalloc(1, 1);
 	size = 1;
 	len = 0;
 
@@ -30,21 +30,19 @@ int parse_req(int connfd, request *req) {
 		req->url[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			req->url = reallocarray(req->url, 1, size);
+			req->url = xreallocarray(req->url, 1, size);
 		}
 	}
 
 	// get http version
-	req->ver = malloc(8);
+	req->ver = xmalloc(8);
 	read(connfd, req->ver, 8);
 
 	char crlf[2];
 	read(connfd, crlf, 2);
 	if (crlf[0] != '\r' || crlf[1] != '\n') { /* a crlf is expected after http version,
 						     if there is none the request is invalid */
-		return 0;
-
-		
+		return 0;	
 	}
 
 	return 1;
