@@ -22,15 +22,15 @@ int parse_req(int connfd, request *req) {
 	}
 
 	// get the uri
-	req->uri = malloc(1);
+	req->url = malloc(1);
 	size = 1;
 	len = 0;
 
 	while ((c = dgetc(connfd)) != ' ') {
-		req->uri[len] = c;
+		req->url[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			req->uri = reallocarray(req->uri, 1, size);
+			req->url = reallocarray(req->url, 1, size);
 		}
 	}
 

@@ -1,6 +1,5 @@
 # zerohttp
-This is a very basic http server made in c
-that is still in development
+This is a very basic http server made in c (still in development)
 
 ## Building
 ```console

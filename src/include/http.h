@@ -8,7 +8,7 @@ typedef struct {
 
 typedef struct {
 	char *method;
-	char *uri;
+	char *url;
 	char *ver;
 	header *headers;
 	unsigned int headers_len;

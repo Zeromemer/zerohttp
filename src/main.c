@@ -8,7 +8,7 @@
 #include "include/http.h"
 #include "include/misc.h"
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 	int sockfd = create_bound_socket(42069);
 
 	socket_listen(sockfd, 5);
@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 			ip,
 			conn.cli.sin_port,
 			req.method,
-			req.uri,
+			req.url,
 			req.ver,
 			valid);
 
