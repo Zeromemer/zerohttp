@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include <unistd.h>
 
+static char* http_errs;
+
+char* http_strerror() {
+	return http_errs;
+}
+
 int parse_req(int connfd, req_t *req) {
 	// getting the method and uri are not seperated into functions for performance
 
@@ -35,15 +41,22 @@ int parse_req(int connfd, req_t *req) {
 		}
 	}
 	req->url[len] = '\0';
+	if (req->url[0] != '/') {
+		http_errs = "Malformed URL";
+		return 0;
+	}
 
 	// get http version
 	req->ver = xmalloc(8);
 	read(connfd, req->ver, 8);
 
+	//TODO: collect headers
+
 	char crlf[2];
 	read(connfd, crlf, 2);
 	if (crlf[0] != '\r' || crlf[1] != '\n') { /* a crlf is expected after http version,
 						     if there is none the request is invalid */
+		http_errs = "No crlf after HTTP version";
 		return 0;	
 	}
 

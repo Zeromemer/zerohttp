@@ -1,7 +1,7 @@
 exec = zerohttp
 sources = $(wildcard src/*.c)
 objects = $(sources:.c=.o)
-flags = -g -Wall
+flags = -g -Wall -lpthread
 
 
 $(exec): $(objects)
