@@ -57,7 +57,7 @@ int parse_req(int connfd, req_t *req) {
 	if (crlf[0] != '\r' || crlf[1] != '\n') { /* a crlf is expected after http version,
 						     if there is none the request is invalid */
 		http_errs = "No crlf after HTTP version";
-		return 0;	
+		return 0;
 	}
 
 	return 1;

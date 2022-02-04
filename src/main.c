@@ -27,7 +27,7 @@ void *serve_request(void *conn_v) {
 			req.ver,
 			valid);
 	
-	// dprintf(conn.fd, "sussy baka current unix time is %d\n", (int)time(NULL));
+	dprintf(conn.fd, "HTTP/1.1 204 No Content\r\n\r\n");
 	
 	free_req(req);
 	close(conn.fd);
@@ -45,8 +45,7 @@ int main(int argc, char **argv) {
 		conn_t conn = await_connection(sockfd);
 		
 		pthread_t thread;
-		pthread_create(&thread, NULL, serve_request, (void*)&conn);
-		
+		pthread_create(&thread, NULL, serve_request, &conn);	
 	}
 	close(sockfd);
 }
