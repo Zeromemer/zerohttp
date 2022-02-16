@@ -24,6 +24,10 @@ void *serve_request(void *client_p) {
 			req.url,
 			req.ver,
 			client.req_valid);
+	printf("\theaders:\n");
+	for (int i = 0; i < req.headers_len; i++) {
+		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
+	}
 	
 	dprintf(conn.fd, "HTTP/1.1 204 No Content\r\n\r\n");
 	

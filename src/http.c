@@ -66,21 +66,6 @@ int parse_req(int connfd, req_t *req) {
 
 
 	for (;;) {
-		/*
-		 * Hello future me!
-		 * as you know this shit doesn't work wih requests from chrome
-		 * here's the debuging command I use to get all the http headers
-		   from a crhome request: nc -l -p 42069
-		 * така е като не яде
-		 *
-		 * it says corupted malloc blah blah b;ah so I'm probably accessing memory
-		 * that I shouldn't be accessing (which should've been a sefgault)
-		 *
-		 * anyways I love this kind of low level bullshit errors
-		 * goodnight to me
-		 * good luck debbuging :)
-		 * */
-
 		// check if we've reached the end of the headers section
 		if ((c = dgetc(connfd)) == '\r') {
 			if (dgetc(connfd) == '\n')
@@ -123,9 +108,25 @@ int parse_req(int connfd, req_t *req) {
 			}
 		}
 		req->headers[req->headers_len].name[header_len] = '\0';
+		for (int i = 0; i < header_len; i++) {
+			if (req->headers[req->headers_len].name[i] == ':') {
+				if ((i + 2) > header_len) { /*The only ':' that was reached was at the end of
+							      the header line, thus request is invalid*/
+					http_errs = "Incorect header formating";
+					return 0;
+				}
+				req->headers[req->headers_len].name[i] = '\0';
+				req->headers[req->headers_len].value =
+					req->headers[req->headers_len].name +
+					i + 2;
+
+				break;
+			}
+		}
 
 		req->headers_len++;
 	}
+
 
 
 
