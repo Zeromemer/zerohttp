@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 
 	printf("Listening on port %d\n", PORT);
 	for (;;) {
-		client_t *client = calloc(1, sizeof(client_t));
+		client_t *client = xcalloc(1, sizeof(client_t));
 		
 		client->conn = await_connection(sockfd);
 		client->req_valid = parse_req(client->conn.fd, &client->req);

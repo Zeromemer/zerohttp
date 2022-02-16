@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <errno.h>
 
-/* Original not split into function code: https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/ */
+/* Sourced from: https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/ */
 
 int create_bound_socket(int port) {
 	int sockfd;
