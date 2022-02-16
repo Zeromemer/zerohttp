@@ -1,5 +1,6 @@
 #include "include/http.h"
 #include "include/misc.h"
+#include "include/xmalloc.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
