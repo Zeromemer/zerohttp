@@ -17,11 +17,11 @@ typedef struct {
 	unsigned int body_len;
 } req_t;
 
-typedef struct {
-	conn_t conn;
-	req_t req;
-	int req_valid;
-} client_t;
+// typedef struct {
+// 	conn_t conn;
+// 	req_t req;
+// 	int req_valid;
+// } client_t;
 
 int parse_req(int connfd, req_t *req);
 

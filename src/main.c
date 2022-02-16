@@ -10,21 +10,21 @@
 
 #define PORT 42069
 
-void *serve_request(void *client_p) {
-	client_t client = *(client_t*)client_p;
-	free(client_p);
-	conn_t conn = client.conn;
-	req_t req = client.req;
+void *serve_request(void *conn_p) {
+	conn_t conn = *(conn_t*)conn_p;
+	free(conn_p);
+	req_t req = {0};
+	int req_valid = parse_req(conn.fd, &req);
 
-	char *ip = inet_ntoa(client.conn.cli.sin_addr);
+	char *ip = inet_ntoa(conn.cli.sin_addr);
 
 	printf("%s:%d:\n\tmethod: %s\n\turl: %s\n\tver: %s \n\tvalid: %d\n",
 			ip,
 			conn.cli.sin_port,
-			client.req.method,
+			req.method,
 			req.url,
 			req.ver,
-			client.req_valid);
+			req_valid);
 	printf("\theaders:\n");
 	for (int i = 0; i < req.headers_len; i++) {
 		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
@@ -45,13 +45,11 @@ int main(int argc, char **argv) {
 
 	printf("Listening on port %d\n", PORT);
 	for (;;) {
-		client_t *client = xcalloc(1, sizeof(client_t));
-		
-		client->conn = await_connection(sockfd);
-		client->req_valid = parse_req(client->conn.fd, &client->req);
+		conn_t *conn = xcalloc(1, sizeof(conn_t));
+		*conn = await_connection(sockfd);
 		
 		pthread_t thread;
-		pthread_create(&thread, NULL, serve_request, client);	
+		pthread_create(&thread, NULL, serve_request, conn);
 	}
 	close(sockfd);
 }

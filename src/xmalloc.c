@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// TODO: make the xmalloc functions thread safe using semaphores
+
 void *xmalloc(size_t size) {
 	void *result = malloc(size);
 	if (!result) {

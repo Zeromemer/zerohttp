@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+// TODO: make a function that reads from a blocking file with a timeout
+
 static char* http_errs;
 
 char* http_strerror() {
