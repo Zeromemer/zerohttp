@@ -10,22 +10,20 @@
 
 #define PORT 42069
 
-void *serve_request(void *conn_v) {
-	conn_t conn = *(conn_t*)conn_v;
+void *serve_request(void *client_p) {
+	client_t client = *(client_t*)client_p;
+	conn_t conn = client.conn;
+	req_t req = client.req;
 
-
-	char *ip = inet_ntoa(conn.cli.sin_addr);
-
-	req_t req = {0};
-	int valid = parse_req(conn.fd, &req);
+	char *ip = inet_ntoa(client.conn.cli.sin_addr);
 
 	printf("%s:%d:\n\tmethod: %s\n\turl: %s\n\tver: %s \n\tvalid: %d\n",
 			ip,
 			conn.cli.sin_port,
-			req.method,
+			client.req.method,
 			req.url,
 			req.ver,
-			valid);
+			client.req_valid);
 	
 	dprintf(conn.fd, "HTTP/1.1 204 No Content\r\n\r\n");
 	
@@ -41,11 +39,13 @@ int main(int argc, char **argv) {
 	socket_listen(sockfd, 5);
 
 	printf("Listening on port %d\n", PORT);
+	client_t client = {0};
 	for (;;) {
-		conn_t conn = await_connection(sockfd);
+		client.conn = await_connection(sockfd);
+		client.req_valid = parse_req(client.conn.fd, &client.req);
 		
 		pthread_t thread;
-		pthread_create(&thread, NULL, serve_request, &conn);	
+		pthread_create(&thread, NULL, serve_request, &client);	
 	}
 	close(sockfd);
 }
