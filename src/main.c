@@ -12,6 +12,7 @@
 
 void *serve_request(void *client_p) {
 	client_t client = *(client_t*)client_p;
+	free(client_p);
 	conn_t conn = client.conn;
 	req_t req = client.req;
 
@@ -43,13 +44,14 @@ int main(int argc, char **argv) {
 	socket_listen(sockfd, 5);
 
 	printf("Listening on port %d\n", PORT);
-	client_t client = {0};
 	for (;;) {
-		client.conn = await_connection(sockfd);
-		client.req_valid = parse_req(client.conn.fd, &client.req);
+		client_t *client = calloc(1, sizeof(client_t));
+		
+		client->conn = await_connection(sockfd);
+		client->req_valid = parse_req(client->conn.fd, &client->req);
 		
 		pthread_t thread;
-		pthread_create(&thread, NULL, serve_request, &client);	
+		pthread_create(&thread, NULL, serve_request, client);	
 	}
 	close(sockfd);
 }
