@@ -41,15 +41,13 @@ void socket_listen(int sockfd, int backlog) {
 	}
 }
 
-conn_t await_connection(int sockfd) {
-	conn_t result = {0};
-	result.len = sizeof(result.cli);
+int await_connection(int sockfd, conn_t *conn) {
+	conn->len = sizeof(conn->cli);
 	
-	result.fd = accept(sockfd, (struct sockaddr*)&result.cli, &result.len);
-	if (result.fd < 0) {
-		fprintf(stderr, "Could not accept client: %s\n", strerror(errno));
-		exit(1);
+	conn->fd = accept(sockfd, (struct sockaddr*)&conn->cli, &conn->len);
+	if (conn->fd < 0) {
+		return 1;
 	}
 	
-	return result;
+	return 0;
 }

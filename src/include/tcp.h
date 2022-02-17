@@ -13,6 +13,6 @@ int create_bound_socket(int port);
 
 void socket_listen(int sockfd, int backlog);
 
-conn_t await_connection(int sockfd);
+int await_connection(int sockfd, conn_t *conn);
 
 #endif
