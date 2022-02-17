@@ -67,7 +67,8 @@ int parse_req(int connfd, req_t *req) {
 	req->headers_len = 0;
 	size = 1;
 
-
+	
+	// get headers
 	for (;;) {
 		// check if we've reached the end of the headers section
 		if ((c = dgetc(connfd)) == '\r') {
