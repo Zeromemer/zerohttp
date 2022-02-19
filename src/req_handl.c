@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include "include/req_handl.h"
 #include "include/http.h"
 
 void *serve_request(void *conn_p) {
@@ -23,12 +24,21 @@ void *serve_request(void *conn_p) {
 	for (int i = 0; i < req.headers_len; i++) {
 		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
 	}
+
 	
+	res_t res = {0};
 	if (req_valid) {
-		dprintf(conn.fd, "HTTP/1.1 204 No Content\r\n\r\n");
+		res.ver = "HTTP/1.1";
+		res.status = 204;
+		res.msg = "No Content";
 	} else {
-		dprintf(conn.fd, "HTTP/1.1 400 Bad Request\r\n\r\n");
+		res.ver = "HTTP/1.1";
+		res.status = 400;
+		res.msg = "Invalid Request";
 	}
+
+	send_res(conn.fd, res);
+	end_res(conn.fd);
 
 	free_req(req);
 	close(conn.fd);

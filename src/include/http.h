@@ -25,6 +25,10 @@ typedef struct {
 
 int parse_req(int connfd, req_t *req);
 
+void send_res(int connfd, res_t res);
+
+void end_res(int connfd);
+
 void free_req(req_t req);
 
 #endif
