@@ -138,6 +138,18 @@ int parse_req(int connfd, req_t *req) {
 	return 1;
 }
 
+void send_res(int connfd, res_t res) {
+	dprintf(connfd, "%s %d %s\r\n", res.ver, res.status, res.msg);
+
+	for (int i = 0; i < res.headers_len; i++) {
+		dprintf(connfd, "%s: %s\r\n", res.headers[i].name, res.headers[i].value);
+	}
+}
+
+void end_res(int connfd) {
+	dprintf(connfd, "\r\n");
+} 
+
 void free_req(req_t req) {
 	free(req.method);
 	free(req.url);
@@ -149,5 +161,4 @@ void free_req(req_t req) {
 		// free(req.headers[i].value);
 	}
 	free(req.headers);
-	free(req.body);
 }
