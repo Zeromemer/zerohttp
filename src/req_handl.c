@@ -24,21 +24,19 @@ void *serve_request(void *conn_p) {
 	for (int i = 0; i < req.headers_len; i++) {
 		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
 	}
-
 	
 	res_t res = {0};
 	if (req_valid) {
 		res.ver = "HTTP/1.1";
-		res.status = 204;
-		res.msg = "No Content";
+		res.status = 200;
+		res.msg = stringify_status_code(res.status);
 	} else {
 		res.ver = "HTTP/1.1";
 		res.status = 400;
-		res.msg = "Invalid Request";
+		res.msg = stringify_status_code(res.status);
 	}
 
 	send_res(conn.fd, res);
-	end_res(conn.fd);
 
 	free_req(req);
 	close(conn.fd);

@@ -7,6 +7,106 @@
 
 // TODO: make a function that reads from a blocking file with a timeout
 
+char *stat_1xx[] = {
+	"Continue",
+	"Switching Protocols",
+	"Processing",
+	"Early Hints"
+};
+
+char *stat_2xx[] = {
+	"OK",
+	"Created",
+	"Accepted",
+	"Non-Authoritative Information",
+	"No Content",
+	"Reset Content",
+	"Partial Content",
+	"Multi-Status",
+};
+
+char *stat_3xx[] = {
+	"Multiple Choice",
+	"Moved Permanently",
+	"Found",
+	"See Other",
+	"Not Modified",
+	NULL,
+	NULL,
+	"Temporary Redirect",
+	"Permanent Redirect"
+};
+
+char *stat_4xx[] = {
+	"Bad Request",
+	"Unauthorized",
+	"Payment Required",
+	"Forbidden",
+	"Not Found",
+	"Method Not Allowed",
+	"Not Acceptable",
+	"Proxy Authentication Required",
+	"Request Timeout",
+	"Conflict",
+	"Gone",
+	"Length Required",
+	"Precondition Failed",
+	"Payload Too Large",
+	"Unsupported Media Type",
+	"Range Not Satisfiable",
+	"Expectation Failed",
+	"I'm a teapot",
+	NULL,
+	NULL,
+	"Misdirected Request",
+	"Unprocessable Entity",
+	"Locked",
+	"Failed Dependency",
+	"Too Early",
+	"Upgrade Required",
+	"Precondition Required",
+	"Too Many Requests",
+	"Request Header Fields Too Large",
+	"Unavailable For Legal Reasons"
+};
+
+char *stat_5xx[] = {
+	"Unavailable For Legal Reasons",
+	"Not Implemented",
+	"Bad Gateway",
+	"Service Unavailable",
+	"Gateway Timeout",
+	"HTTP Version Not Supported",
+	"Variant Also Negotiates",
+	"Insufficient Storage",
+	"Loop Detected",
+	NULL,
+	"Not Extended",
+	"Network Authentication Required"
+};
+
+char *stringify_status_code(int status) {
+	int range = status / 100;
+	int numbr = status % 100;
+
+	char **range_arr;
+	size_t range_arr_size;
+
+	switch (range) {
+	case 1: range_arr = stat_1xx; range_arr_size = STAT_ARR_SIZE(stat_1xx); break;
+	case 2: range_arr = stat_2xx; range_arr_size = STAT_ARR_SIZE(stat_2xx); break;
+	case 3: range_arr = stat_3xx; range_arr_size = STAT_ARR_SIZE(stat_3xx); break;
+	case 4: range_arr = stat_4xx; range_arr_size = STAT_ARR_SIZE(stat_4xx); break;
+	case 5: range_arr = stat_5xx; range_arr_size = STAT_ARR_SIZE(stat_5xx); break;
+	default: return NULL;
+	}
+
+	if (numbr >= range_arr_size)
+		return NULL;
+
+	return range_arr[numbr];
+}
+
 static char *http_errs;
 
 char *http_strerror() {
@@ -144,16 +244,16 @@ void send_res(int connfd, res_t res) {
 	for (int i = 0; i < res.headers_len; i++) {
 		dprintf(connfd, "%s: %s\r\n", res.headers[i].name, res.headers[i].value);
 	}
+	if (!res.headers_len) {
+		dprintf(connfd, "\r\n");
+	}
 }
-
-void end_res(int connfd) {
-	dprintf(connfd, "\r\n");
-} 
 
 void free_req(req_t req) {
 	free(req.method);
 	free(req.url);
 	free(req.ver);
+
 	for (int i = 0; i < req.headers_len; i++) {
 		free(req.headers[i].name);
 		

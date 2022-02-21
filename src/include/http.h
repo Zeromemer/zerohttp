@@ -27,7 +27,7 @@ int parse_req(int connfd, req_t *req);
 
 void send_res(int connfd, res_t res);
 
-void end_res(int connfd);
+char *stringify_status_code(int status);
 
 void free_req(req_t req);
 

@@ -10,7 +10,7 @@ int dgetc(int fd) {
 	return c;
 }
 
-size_t filesize(FILE* f) {
+size_t filesize(FILE *f) {
 	if (f == NULL)
 		return RESULT_ERROR;
 
@@ -19,6 +19,6 @@ size_t filesize(FILE* f) {
 
 
 	size_t length = ftell(f);
-	fseek (f, 0, SEEK_SET);
+	fseek(f, 0, SEEK_SET);
 	return length;
 }
