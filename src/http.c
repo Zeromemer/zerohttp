@@ -239,14 +239,13 @@ int parse_req(int connfd, req_t *req) {
 }
 
 void send_res(int connfd, res_t res) {
-	dprintf(connfd, "%s %d %s\r\n", res.ver, res.status, res.msg);
+	dprintf(connfd, "%s %d %s\r\n", res.ver, res.status, res.msg); // status line
 
 	for (int i = 0; i < res.headers_len; i++) {
 		dprintf(connfd, "%s: %s\r\n", res.headers[i].name, res.headers[i].value);
-	}
-	if (!res.headers_len) {
-		dprintf(connfd, "\r\n");
-	}
+	} // headers
+	
+	dprintf(connfd, "\r\n"); // end headers section
 }
 
 void free_req(req_t req) {

@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "include/req_handl.h"
 #include "include/http.h"
+#include "include/misc.h"
 
 void *serve_request(void *conn_p) {
 	conn_t conn = *(conn_t*)conn_p;
@@ -24,16 +25,30 @@ void *serve_request(void *conn_p) {
 	for (int i = 0; i < req.headers_len; i++) {
 		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
 	}
-	
-	res_t res = {0};
+
+	res_t res = {0};	
 	if (req_valid) {
 		res.ver = "HTTP/1.1";
 		res.status = 200;
 		res.msg = stringify_status_code(res.status);
+
+		header_t headers[] = {
+			{"Connection", "close"}
+		};
+
+		res.headers = headers;
+		res.headers_len = STAT_ARR_SIZE(headers);
 	} else {
 		res.ver = "HTTP/1.1";
 		res.status = 400;
 		res.msg = stringify_status_code(res.status);
+
+		header_t headers[] = {
+			{"Connection", "close"}
+		};
+
+		res.headers = headers;
+		res.headers_len = STAT_ARR_SIZE(headers);
 	}
 
 	send_res(conn.fd, res);
