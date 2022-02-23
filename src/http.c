@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 // TODO: make a function that reads from a blocking file with a timeout
 
@@ -165,7 +166,7 @@ int parse_req(int connfd, req_t *req) {
 
 	req->headers = xmalloc(sizeof(header_t));
 	req->headers_len = 0;
-	size = 1;
+	req->headers_alloc_len = 1;
 
 	
 	// get headers
@@ -184,9 +185,9 @@ int parse_req(int connfd, req_t *req) {
 		req->headers[req->headers_len].name = xmalloc(1);
 		unsigned int header_size = 1;
 		unsigned int header_len = 0;
-		if (size == req->headers_len + 1) {
-			size *= 2;
-			req->headers = xreallocarray(req->headers, size, sizeof(header_t));
+		if (req->headers_alloc_len == req->headers_len + 1) {
+			req->headers_alloc_len *= 2;
+			req->headers = xreallocarray(req->headers, req->headers_alloc_len, sizeof(header_t));
 		}
 
 
@@ -236,6 +237,16 @@ int parse_req(int connfd, req_t *req) {
 
 
 	return 1;
+}
+
+char *get_header_value(header_t *headers, size_t len, char *query) {
+	for (int i = 0; i < len; i++) {
+		if (!strcmp(headers[i].name, query)) {
+			return headers[i].value;
+		}
+	}
+
+	return NULL;
 }
 
 void send_res(int connfd, res_t res) {

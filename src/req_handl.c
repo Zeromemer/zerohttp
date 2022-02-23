@@ -26,6 +26,8 @@ void *serve_request(void *conn_p) {
 		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
 	}
 
+	printf("user agent is: %s\n", get_header_value(req.headers, req.headers_len, "User-Agent"));
+
 	res_t res = {0};	
 	if (req_valid) {
 		res.ver = "HTTP/1.1";
