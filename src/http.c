@@ -241,7 +241,7 @@ int parse_req(int connfd, req_t *req) {
 
 char *get_header_value(header_t *headers, size_t len, char *query) {
 	for (int i = 0; i < len; i++) {
-		if (!strcmp(headers[i].name, query)) {
+		if (!strcasecmp(headers[i].name, query)) {
 			return headers[i].value;
 		}
 	}
