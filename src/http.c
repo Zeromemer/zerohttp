@@ -260,15 +260,15 @@ void send_res(int connfd, res_t res) {
 }
 
 void free_req(req_t req) {
-	free(req.method);
-	free(req.url);
-	free(req.ver);
+	xfree(req.method);
+	xfree(req.url);
+	xfree(req.ver);
 
 	for (int i = 0; i < req.headers_len; i++) {
-		free(req.headers[i].name);
+		xfree(req.headers[i].name);
 		
 		// this is what I would do if name and value werent on the same memory block
 		// free(req.headers[i].value);
 	}
-	free(req.headers);
+	xfree(req.headers);
 }

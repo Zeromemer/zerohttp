@@ -4,11 +4,12 @@
 #include <unistd.h>
 #include "include/req_handl.h"
 #include "include/http.h"
+#include "include/xmalloc.h"
 #include "include/misc.h"
 
 void *serve_request(void *conn_p) {
 	conn_t conn = *(conn_t*)conn_p;
-	free(conn_p);
+	xfree(conn_p);
 	req_t req = {0};
 	int req_valid = parse_req(conn.fd, &req);
 
