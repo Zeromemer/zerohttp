@@ -118,20 +118,21 @@ int parse_url(char *input, size_t input_len, char *output) {
 	int output_prog = 0;
 	for (int i = 0; i < input_len; i++) {
 		if (input[i] == '%') {
-			if (i + 3 >= input_len)
-				return 1;
+			if (i + 2 >= input_len)
+				return 0;
 
 			char c = parse_hex_byte(input + i + 1);
 			output[output_prog++] = c;
 			i += 2;
-			if (!c) return 1;
+
+			if (!c) return 0;
 		} else {
 			output[output_prog++] = input[i];
 		}
 	}
 	output[output_prog++] = '\0';
 
-	return 0;
+	return 1;
 }
 
 int parse_req(int connfd, req_t *req) {

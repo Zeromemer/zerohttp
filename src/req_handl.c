@@ -17,15 +17,15 @@ void *serve_request(void *conn_p) {
 	char *ip = inet_ntoa(conn.cli.sin_addr);
 
 	char parsed_url[strlen(req.url) + 1];
-	int url_invalid = parse_url(req.url, strlen(req.url), parsed_url);
+	int url_valid = parse_url(req.url, strlen(req.url), parsed_url);
 
 
-	printf("%s:%d:\n\tmethod: %s\n\turl: %s (invalid: %d , parsed: %s)\n\tver: %s \n\tvalid: %d\n",
+	printf("%s:%d:\n\tmethod: %s\n\turl: %s (valid: %d, parsed: %s)\n\tver: %s \n\tvalid: %d\n",
 			ip,
 			conn.cli.sin_port,
 			req.method,
 			req.url,
-			url_invalid,
+			url_valid,
 			parsed_url,
 			req.ver,
 			req_valid);
@@ -35,7 +35,7 @@ void *serve_request(void *conn_p) {
 	}
 
 	res_t res = {0};	
-	if (req_valid) {
+	if (req_valid && url_valid) {
 		res.ver = "HTTP/1.1";
 		res.status = 200;
 		res.msg = stringify_status_code(res.status);
