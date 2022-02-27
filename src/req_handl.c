@@ -36,6 +36,7 @@ void *serve_request(void *conn_p) {
 		res.msg = stringify_status_code(res.status);
 
 		header_t headers[] = {
+			{"Server", "zerohttp"},
 			{"Connection", "close"}
 		};
 
@@ -47,6 +48,7 @@ void *serve_request(void *conn_p) {
 		res.msg = stringify_status_code(res.status);
 
 		header_t headers[] = {
+			{"Server", "zerohttp"},
 			{"Connection", "close"}
 		};
 
