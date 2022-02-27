@@ -39,12 +39,10 @@ ssize_t read_timeout(int fd, void *buff, size_t count, time_t tv_sec, suseconds_
 }
 
 char parse_hex_byte(char *byte_buff) {
-	int result = 0;
-	
-	result += char_value(byte_buff[0]) * 16;
-	result += char_value(byte_buff[1]);
+	int first_val = char_value(byte_buff[0]) * 16;
+	int second_val = char_value(byte_buff[1]);
 
-	return (result > 0) ? result : 0;
+	return ((first_val < 0) || (second_val < 0)) ? 0 : first_val + second_val;
 }
 
 size_t filesize(FILE *f) {
