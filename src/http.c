@@ -114,9 +114,7 @@ char *http_strerror() {
 	return http_errs;
 }
 
-int parse_url(char *input, char *output) {
-	size_t input_len = strlen(input);
-
+int parse_url(char *input, size_t input_len, char *output) {
 	int output_prog = 0;
 	for (int i = 0; i < input_len; i++) {
 		if (input[i] == '%') {

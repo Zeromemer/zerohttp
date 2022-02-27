@@ -17,7 +17,7 @@ void *serve_request(void *conn_p) {
 	char *ip = inet_ntoa(conn.cli.sin_addr);
 
 	char parsed_url[strlen(req.url) + 1];
-	int url_invalid = parse_url(req.url, parsed_url);
+	int url_invalid = parse_url(req.url, strlen(req.url), parsed_url);
 
 
 	printf("%s:%d:\n\tmethod: %s\n\turl: %s (invalid: %d , parsed: %s)\n\tver: %s \n\tvalid: %d\n",

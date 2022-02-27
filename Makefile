@@ -2,14 +2,14 @@ exec = zerohttp
 CC = gcc
 sources = $(wildcard src/*.c)
 objects = $(sources:.c=.o)
-flags = -g -Wall -lpthread
-
+cflags = -g -Wall
+lflags = -lpthread
 
 $(exec): $(objects)
-	$(CC) $(objects) $(flags) -o $(exec)
+	$(CC) $(objects) $(lflags) -o $(exec)
 
 %.o: %.c include/%.h
-	$(CC) -c $(flags) $< -o $@
+	$(CC) -c $(cflags) $< -o $@
 
 clean:
 	-rm src/*.o
