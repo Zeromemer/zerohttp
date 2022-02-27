@@ -28,6 +28,25 @@ ssize_t read_timeout(int fd, void *buff, size_t count, time_t tv_sec, suseconds_
 	return ret;
 }
 
+int is_hex(char c) {
+	if (c >= '0' && c <= 'F') {
+		return 1;
+	}
+
+	return 0;
+}
+
+char parse_hex_byte(char *byte_buff) {
+	int result = 0;
+	
+	if (is_hex(byte_buff[0]) && is_hex(byte_buff[1])) {
+		result += (byte_buff[0] - '0') * 16;
+		result += (byte_buff[1] - '0');
+	}
+
+	return result;
+}
+
 size_t filesize(FILE *f) {
 	if (f == NULL)
 		return RESULT_ERROR;

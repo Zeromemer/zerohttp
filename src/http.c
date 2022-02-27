@@ -114,6 +114,29 @@ char *http_strerror() {
 	return http_errs;
 }
 
+int parse_url(char *input, char *output) {
+	size_t input_len = strlen(input);
+
+	int output_prog = 0;
+	for (int i = 0; i < input_len; i++) {
+		if (input[i] == '%') {
+			if (i + 3 >= input_len)
+				return 1;
+
+			char c = parse_hex_byte(input + i + 1);
+			if (c) {
+				output[output_prog++] = c;
+				i += 2;
+			} else return 1;
+		} else {
+			output[output_prog++] = input[i];
+		}
+	}
+	output[output_prog++] = '\0';
+
+	return 0;
+}
+
 int parse_req(int connfd, req_t *req) {
 	// getting the method and uri are not seperated into functions for performance
 
