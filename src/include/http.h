@@ -27,8 +27,6 @@ void send_res_status(int connfd, char *ver, int status, char *msg);
 
 void send_res_header(int connfd, char *name, char *value);
 
-void send_res_headers_end(int connfd);
-
 char *stringify_status_code(int status);
 
 void free_req(req_t req);

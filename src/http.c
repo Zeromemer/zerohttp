@@ -275,10 +275,11 @@ void send_res_status(int connfd, char *ver, int status, char *msg) {
 }
 
 void send_res_header(int connfd, char *name, char *value) {
-	dprintf(connfd, "%s: %s\r\n", name, value);
-}
+	if (name) {
+		dprintf(connfd, "%s: %s\r\n", name, value);
+		return;
+	}
 
-void send_res_headers_end(int connfd) {
 	dprintf(connfd, "\r\n");
 }
 

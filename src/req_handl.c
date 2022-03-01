@@ -40,7 +40,7 @@ void *serve_request(void *conn_p) {
 		
 		send_res_header(conn.fd, "Server", "zerohttp");
 		send_res_header(conn.fd, "Connection", "close");
-		send_res_headers_end(conn.fd);
+		send_res_header(conn.fd, NULL, NULL);
 		
 		dprintf(conn.fd, "<h1>Hello, World!<h1>");
 	} else {
@@ -49,7 +49,7 @@ void *serve_request(void *conn_p) {
 		
 		send_res_header(conn.fd, "Server", "zerohttp");
 		send_res_header(conn.fd, "Connection", "close");
-		send_res_headers_end(conn.fd);
+		send_res_header(conn.fd, NULL, NULL);
 	}
 
 	free_req(req);
