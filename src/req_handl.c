@@ -41,6 +41,8 @@ void *serve_request(void *conn_p) {
 		send_res_header(conn.fd, "Server", "zerohttp");
 		send_res_header(conn.fd, "Connection", "close");
 		send_res_headers_end(conn.fd);
+		
+		dprintf(conn.fd, "<h1>Hello, World!<h1>");
 	} else {
 		int status = 400;
 		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
