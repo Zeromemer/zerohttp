@@ -270,14 +270,16 @@ char *get_header_value(header_t *headers, size_t len, char *query) {
 	return NULL;
 }
 
-void send_res(int connfd, res_t res) {
-	dprintf(connfd, "%s %d %s\r\n", res.ver, res.status, res.msg); // status line
+void send_res_status(int connfd, char *ver, int status, char *msg) {
+	dprintf(connfd, "%s %d %s\r\n", ver, status, msg);
+}
 
-	for (int i = 0; i < res.headers_len; i++) {
-		dprintf(connfd, "%s: %s\r\n", res.headers[i].name, res.headers[i].value);
-	} // headers
-	
-	dprintf(connfd, "\r\n"); // end headers section
+void send_res_header(int connfd, char *name, char *value) {
+	dprintf(connfd, "%s: %s\r\n", name, value);
+}
+
+void send_res_headers_end(int connfd) {
+	dprintf(connfd, "\r\n");
 }
 
 void free_req(req_t req) {

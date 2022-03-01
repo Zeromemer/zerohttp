@@ -34,34 +34,21 @@ void *serve_request(void *conn_p) {
 		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
 	}
 
-	res_t res = {0};	
 	if (req_valid && url_valid) {
-		res.ver = "HTTP/1.1";
-		res.status = 200;
-		res.msg = stringify_status_code(res.status);
-
-		header_t headers[] = {
-			{"Server", "zerohttp"},
-			{"Connection", "close"}
-		};
-
-		res.headers = headers;
-		res.headers_len = STAT_ARR_SIZE(headers);
+		int status = 200;
+		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
+		
+		send_res_header(conn.fd, "Server", "zerohttp");
+		send_res_header(conn.fd, "Connection", "close");
+		send_res_headers_end(conn.fd);
 	} else {
-		res.ver = "HTTP/1.1";
-		res.status = 400;
-		res.msg = stringify_status_code(res.status);
-
-		header_t headers[] = {
-			{"Server", "zerohttp"},
-			{"Connection", "close"}
-		};
-
-		res.headers = headers;
-		res.headers_len = STAT_ARR_SIZE(headers);
+		int status = 400;
+		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
+		
+		send_res_header(conn.fd, "Server", "zerohttp");
+		send_res_header(conn.fd, "Connection", "close");
+		send_res_headers_end(conn.fd);
 	}
-
-	send_res(conn.fd, res);
 
 	free_req(req);
 	close(conn.fd);
