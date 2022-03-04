@@ -13,8 +13,3 @@ obj/%.o: src/%.c src/include/%.h
 
 clean:
 	-rm obj/*
-
-# temp
-vardump:
-	echo sources: $(sources)
-	echo objects: $(objects)

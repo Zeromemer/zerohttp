@@ -24,8 +24,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url) {
 	if (lstat(path, &path_stat) != -1 && S_ISREG(path_stat.st_mode)) {
 		int fd = open(path, O_RDONLY);
 
-		int status = 200;
-		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
+		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
 		send_res_header(conn.fd, "Server", "zerohttp");
 		send_res_header(conn.fd, "Connection", "close");
@@ -33,8 +32,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url) {
 
 		sendfile(conn.fd, fd, NULL, path_stat.st_size);
 	} else {
-		int status = 404;
-		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
+		send_res_status(conn.fd, "HTTP/1.1", 404, "Not Found");
 
 		send_res_header(conn.fd, "Server", "zerohttp");
 		send_res_header(conn.fd, "Connection", "close");
@@ -72,7 +70,7 @@ void *serve_request(void *conn_p) {
 		serve_regular_request(conn, req, parsed_url);
 	} else {
 		int status = 400;
-		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
+		send_res_status(conn.fd, "HTTP/1.1", status, "Bad Request");
 		
 		send_res_header(conn.fd, "Server", "zerohttp");
 		send_res_header(conn.fd, "Connection", "close");
