@@ -58,3 +58,16 @@ size_t filesize(FILE *f) {
 	fseek(f, 0, SEEK_SET);
 	return length;
 }
+
+char *strcat_mod(char *buff, char *str1, char *str2) {
+	size_t str1_len = strlen(str1);
+	size_t str2_len = strlen(str2);
+
+	// concat str1 and str2 into buff with \0 at the end
+	memcpy(buff, str1, str1_len);
+	memcpy(buff + str1_len, str2, str2_len);
+	buff[str1_len + str2_len] = '\0';
+    
+
+    return buff;
+}

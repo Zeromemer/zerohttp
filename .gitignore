@@ -2,3 +2,4 @@ zerohttp
 .vscode/
 *.swp
 *.o
+req_src/*

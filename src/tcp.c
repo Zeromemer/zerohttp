@@ -42,9 +42,9 @@ void socket_listen(int sockfd, int backlog) {
 }
 
 int await_connection(int sockfd, conn_t *conn) {
-	conn->len = sizeof(conn->cli);
+	socklen_t len = sizeof(conn->cli);
 	
-	conn->fd = accept(sockfd, (struct sockaddr*)&conn->cli, &conn->len);
+	conn->fd = accept(sockfd, (struct sockaddr*)&conn->cli, &len);
 	if (conn->fd < 0) {
 		return 1;
 	}

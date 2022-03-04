@@ -19,6 +19,8 @@ typedef struct {
 
 int parse_url(char *input, size_t input_len, char *output);
 
+int check_url(char *url);
+
 int parse_req(int connfd, req_t *req);
 
 char *get_header_value(header_t *headers, size_t len, char *query);

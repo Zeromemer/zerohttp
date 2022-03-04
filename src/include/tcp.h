@@ -6,7 +6,6 @@
 typedef struct {
 	int fd;
 	struct sockaddr_in cli;
-	socklen_t len;
 } conn_t;
 
 int create_bound_socket(int port);

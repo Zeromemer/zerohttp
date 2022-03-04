@@ -68,11 +68,11 @@ char *stat_4xx[] = {
 	"Precondition Required",
 	"Too Many Requests",
 	"Request Header Fields Too Large",
-	"Unavailable For Legal Reasons"
+	"Unavailable For Legal Reasons" // TODO: These are a little messed up, this should be code 451
 };
 
 char *stat_5xx[] = {
-	"Unavailable For Legal Reasons",
+	"Internal Server Error",
 	"Not Implemented",
 	"Bad Gateway",
 	"Service Unavailable",
@@ -131,6 +131,18 @@ int parse_url(char *input, size_t input_len, char *output) {
 		}
 	}
 	output[output_prog++] = '\0';
+
+	return 1;
+}
+
+int check_url(char *url) {
+	int url_len = strlen(url);
+
+	for (int i = 0; i < url_len - 2; i++) {
+		if (url[i] == '/' && url[i+1] == '.' && url[i+2] == '.' && (url[i+3] == '/' || url[i+3] == '\0')) {
+			return 0;
+		}
+	}
 
 	return 1;
 }
@@ -217,7 +229,7 @@ int parse_req(int connfd, req_t *req) {
 			req->headers[req->headers_len].name[header_len] = c;
 			if (header_size == ++header_len) {
 				header_size *= 2;
-				req->headers[req->headers_len].name = realloc(
+				req->headers[req->headers_len].name = xrealloc(
 						req->headers[req->headers_len].name,
 						header_size);
 			}

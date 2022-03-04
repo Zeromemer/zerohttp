@@ -14,6 +14,8 @@ int dgetc_timeout(int fd, time_t tv_sec, suseconds_t tv_usec);
 
 char parse_hex_byte(char *byte_buff);
 
-size_t filesize(FILE* f); 
+size_t filesize(FILE* f);
+
+char *strcat_mod(char *buff, char *str1, char *str2);
 
 #endif

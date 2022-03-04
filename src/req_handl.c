@@ -1,12 +1,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/sendfile.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
 #include "include/req_handl.h"
 #include "include/http.h"
 #include "include/xmalloc.h"
 #include "include/misc.h"
+
+char *srcs_dir = "./req_src";
+
+void serve_regular_request(conn_t conn, req_t req, char *parsed_url) {
+	char path[strlen(srcs_dir) + strlen(parsed_url)];
+
+	strcat_mod(path, srcs_dir, parsed_url);
+	printf("path: %s\n", path);
+
+	struct stat path_stat;
+	if (lstat(path, &path_stat) != -1 && S_ISREG(path_stat.st_mode)) {
+		int fd = open(path, O_RDONLY);
+
+		int status = 200;
+		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
+
+		send_res_header(conn.fd, "Server", "zerohttp");
+		send_res_header(conn.fd, "Connection", "close");
+		send_res_header(conn.fd, NULL, NULL);
+
+		sendfile(conn.fd, fd, NULL, path_stat.st_size);
+	} else {
+		int status = 404;
+		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
+
+		send_res_header(conn.fd, "Server", "zerohttp");
+		send_res_header(conn.fd, "Connection", "close");
+		send_res_header(conn.fd, NULL, NULL);
+	}
+}
 
 void *serve_request(void *conn_p) {
 	conn_t conn = *(conn_t*)conn_p;
@@ -34,15 +68,8 @@ void *serve_request(void *conn_p) {
 		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
 	}
 
-	if (req_valid && url_valid) {
-		int status = 200;
-		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
-		
-		send_res_header(conn.fd, "Server", "zerohttp");
-		send_res_header(conn.fd, "Connection", "close");
-		send_res_header(conn.fd, NULL, NULL);
-		
-		dprintf(conn.fd, "<h1>Hello, World!<h1>");
+	if (req_valid && url_valid && check_url(parsed_url)) {
+		serve_regular_request(conn, req, parsed_url);
 	} else {
 		int status = 400;
 		send_res_status(conn.fd, "HTTP/1.1", status, stringify_status_code(status));
