@@ -18,4 +18,6 @@ size_t filesize(FILE* f);
 
 char *strcat_mod(char *buff, char *str1, char *str2);
 
+int startswith(const char *pre, const char *str);
+
 #endif

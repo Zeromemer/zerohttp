@@ -71,3 +71,7 @@ char *strcat_mod(char *buff, char *str1, char *str2) {
 
     return buff;
 }
+
+int startswith(const char *str, const char *pre) {
+    return strncmp(pre, str, strlen(pre)) == 0;
+}
