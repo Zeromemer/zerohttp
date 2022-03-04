@@ -3,3 +3,4 @@ zerohttp
 *.swp
 *.o
 req_src/*
+obj/*

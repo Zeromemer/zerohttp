@@ -1,15 +1,20 @@
 exec = zerohttp
 CC = gcc
 sources = $(wildcard src/*.c)
-objects = $(sources:.c=.o)
+objects = $(patsubst src/%.c, obj/%.o, $(sources))
 cflags = -g -Wall
 lflags = -lpthread
 
 $(exec): $(objects)
 	$(CC) $(objects) $(lflags) -o $(exec)
 
-%.o: %.c include/%.h
+obj/%.o: src/%.c src/include/%.h
 	$(CC) -c $(cflags) $< -o $@
 
 clean:
-	-rm src/*.o
+	-rm obj/*
+
+# temp
+vardump:
+	echo sources: $(sources)
+	echo objects: $(objects)
