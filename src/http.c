@@ -6,10 +6,26 @@
 #include <unistd.h>
 #include <string.h>
 
-static char *http_errs;
+char *http_err_strings[6] = {
+	NULL,
+	"Malformed URL",
+	"No crlf after URL line",
+	"No crlf after header",
+	"No crlf after ending of headers section",
+	"Incorrect header formating"
+};
+
+enum http_err_t {
+	NONE,
+	URL,
+	URL_LINE,
+	HEADER,
+	HEADER_SECTION,
+	HEADER_FORMAT
+} http_errnum;
 
 char *http_strerror() {
-	return http_errs;
+	return http_err_strings[http_errnum];
 }
 
 int parse_url(char *input, size_t input_len, char *output) {
@@ -77,7 +93,7 @@ int parse_req(int connfd, req_t *req) {
 	}
 	req->url[len] = '\0';
 	if (req->url[0] != '/') {
-		http_errs = "Malformed URL";
+		http_errnum = URL;
 		return 0;
 	}
 
@@ -90,7 +106,7 @@ int parse_req(int connfd, req_t *req) {
 	read(connfd, crlf, 2);
 	if (crlf[0] != '\r' || crlf[1] != '\n') { /* a crlf is expected after http version,
 						     if there is none the request is invalid */
-		http_errs = "No crlf after HTTP version";
+		http_errnum = URL_LINE;
 		return 0;
 	}
 
@@ -107,7 +123,7 @@ int parse_req(int connfd, req_t *req) {
 			if (dgetc(connfd) == '\n')
 				break;
 			else {
-				http_errs = "No crlf after ending of headers section";
+				http_errnum = HEADER_SECTION;
 				return 0;
 			}
 		}
@@ -138,19 +154,21 @@ int parse_req(int connfd, req_t *req) {
 				if (dgetc(connfd) == '\n')
 					break;
 				else {
-					http_errs = "No crlf after ending of header";
+					http_errnum = HEADER;
 					return 0;
 				}
 			}
 		}
 		req->headers[req->headers_len].name[header_len] = '\0';
+		int colon_reached = 0;
 		for (int i = 0; i < header_len; i++) {
 			if (req->headers[req->headers_len].name[i] == ':') {
 				if ((i + 2) > header_len) { /*The only ':' that was reached was at the end of
 							      the header line, thus request is invalid*/
-					http_errs = "Incorect header formating";
+					http_errnum = HEADER_FORMAT;
 					return 0;
 				}
+				colon_reached = 1;
 				req->headers[req->headers_len].name[i] = '\0';
 				req->headers[req->headers_len].value =
 					req->headers[req->headers_len].name +
@@ -158,6 +176,10 @@ int parse_req(int connfd, req_t *req) {
 
 				break;
 			}
+		}
+		if (!colon_reached) { /*There is no colon at the end of the header line*/
+			http_errnum = HEADER_FORMAT;
+			return 0;
 		}
 
 		req->headers_len++;
