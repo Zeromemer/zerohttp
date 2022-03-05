@@ -93,8 +93,7 @@ void *serve_request(void *conn_p) {
 	if (req_valid && url_valid && check_url(parsed_url)) {
 		serve_regular_request(conn, req, parsed_url);
 	} else {
-		int status = 400;
-		send_res_status(conn.fd, "HTTP/1.1", status, "Bad Request");
+		send_res_status(conn.fd, "HTTP/1.1", 400, "Bad Request");
 		
 		send_res_header(conn.fd, "Server", "zerohttp");
 		send_res_header(conn.fd, "Connection", "close");
