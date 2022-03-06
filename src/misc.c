@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <sys/select.h>
 
 int char_value(char c) {
@@ -74,4 +76,8 @@ char *strcat_mod(char *buff, char *str1, char *str2) {
 
 int startswith(const char *str, const char *pre) {
     return strncmp(pre, str, strlen(pre)) == 0;
+}
+
+int fd_is_valid(int fd) {
+    return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
 }

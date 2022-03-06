@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <string.h>
+#include <signal.h>
 
 #include "include/tcp.h"
 #include "include/http.h"
@@ -15,6 +16,9 @@
 #define PORT 42069
 
 int main(int argc, char **argv) {
+	struct sigaction sig_conf = {{SIG_IGN}};
+	sigaction(SIGPIPE, &sig_conf, NULL);
+	
 	int sockfd = create_bound_socket(PORT);
 
 	socket_listen(sockfd, 5);

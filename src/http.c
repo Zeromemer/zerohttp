@@ -61,7 +61,7 @@ int check_url(char *url) {
 	return 1;
 }
 
-int parse_req(int connfd, req_t *req) {
+int parse_req(int connfd, req_t *req) { // TODO: make return value be an index of http_err_strings instead of http_errnum being set
 	// getting the method and uri are not seperated into functions for performance
 
 	// get the method

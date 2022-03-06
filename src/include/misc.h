@@ -20,4 +20,6 @@ char *strcat_mod(char *buff, char *str1, char *str2);
 
 int startswith(const char *pre, const char *str);
 
+int fd_is_valid(int fd);
+
 #endif
