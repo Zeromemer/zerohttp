@@ -170,10 +170,6 @@ int parse_req(int connfd, req_t *req) { // TODO: make return value be an index o
 		req->headers_len++;
 	}
 
-
-
-
-
 	return 0;
 }
 

@@ -125,6 +125,7 @@ void *serve_request(void *conn_p) {
 
 	free_req(req);
 	close(conn.fd);
+	printf("Closed connection %d.\n", conn.fd);
 	
 	return NULL;
 }
