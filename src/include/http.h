@@ -16,6 +16,15 @@ typedef struct {
 	size_t headers_len;
 } req_t;
 
+enum http_req_err_t {
+	NONE,
+	URL,
+	URL_LINE,
+	HEADER,
+	HEADER_SECTION,
+	HEADER_FORMAT
+};
+
 
 int parse_url(char *input, size_t input_len, char *output);
 

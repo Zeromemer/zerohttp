@@ -90,37 +90,37 @@ void *serve_request(void *conn_p) {
 	conn_t conn = *(conn_t*)conn_p;
 	xfree(conn_p);
 	req_t req = {0};
-	int req_valid = parse_req(conn.fd, &req);
+	int req_status = parse_req(conn.fd, &req);
 
 	char *ip = inet_ntoa(conn.cli.sin_addr);
 
 	char parsed_url[strlen(req.url) + 1];
-	int url_valid = parse_url(req.url, strlen(req.url), parsed_url);
+	int url_status = parse_url(req.url, strlen(req.url), parsed_url);
 
 
-	printf("%s:%d (fd: %d):\n\tmethod: %s\n\turl: %s (valid: %d, parsed: %s)\n\tver: %s \n\tvalid: %d\n",
+	printf("%s:%d (fd: %d):\n\tmethod: %s\n\turl: %s (invalid: %d, parsed: %s)\n\tver: %s \n\tinvalid: %d\n",
 			ip,
 			conn.cli.sin_port,
 			conn.fd,
 			req.method,
 			req.url,
-			url_valid,
+			url_status,
 			parsed_url,
 			req.ver,
-			req_valid);
+			req_status);
 	printf("\theaders:\n");
 	for (int i = 0; i < req.headers_len; i++) {
 		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
 	}
 
-	if (req_valid && url_valid && check_url(parsed_url)) {
-		serve_regular_request(conn, req, parsed_url);
-	} else {
+	if (req_status || url_status || check_url(parsed_url)) {
 		send_res_status(conn.fd, "HTTP/1.1", 400, "Bad Request");
 		
 		send_res_header(conn.fd, "Server", "zerohttp");
 		send_res_header(conn.fd, "Connection", "close");
 		send_res_header(conn.fd, NULL, NULL);
+	} else {
+		serve_regular_request(conn, req, parsed_url);
 	}
 
 	free_req(req);

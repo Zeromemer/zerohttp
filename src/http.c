@@ -15,16 +15,7 @@ char *http_err_strings[6] = {
 	"Incorrect header formating"
 };
 
-enum http_err_t {
-	NONE,
-	URL,
-	URL_LINE,
-	HEADER,
-	HEADER_SECTION,
-	HEADER_FORMAT
-} http_errnum;
-
-char *http_strerror() {
+char *http_strerror(int http_errnum) {
 	return http_err_strings[http_errnum];
 }
 
@@ -33,20 +24,20 @@ int parse_url(char *input, size_t input_len, char *output) {
 	for (int i = 0; i < input_len; i++) {
 		if (input[i] == '%') {
 			if (i + 2 >= input_len)
-				return 0;
+				return 1;
 
 			char c = parse_hex_byte(input + i + 1);
 			output[output_prog++] = c;
 			i += 2;
 
-			if (!c) return 0;
+			if (!c) return 1;
 		} else {
 			output[output_prog++] = input[i];
 		}
 	}
 	output[output_prog++] = '\0';
 
-	return 1;
+	return 0;
 }
 
 int check_url(char *url) {
@@ -54,11 +45,11 @@ int check_url(char *url) {
 
 	for (int i = 0; i < url_len - 2; i++) {
 		if (url[i] == '/' && url[i+1] == '.' && url[i+2] == '.' && (url[i+3] == '/' || url[i+3] == '\0')) {
-			return 0;
+			return 1;
 		}
 	}
 
-	return 1;
+	return 0;
 }
 
 int parse_req(int connfd, req_t *req) { // TODO: make return value be an index of http_err_strings instead of http_errnum being set
@@ -93,8 +84,7 @@ int parse_req(int connfd, req_t *req) { // TODO: make return value be an index o
 	}
 	req->url[len] = '\0';
 	if (req->url[0] != '/') {
-		http_errnum = URL;
-		return 0;
+		return URL;
 	}
 
 	// get http version
@@ -106,8 +96,7 @@ int parse_req(int connfd, req_t *req) { // TODO: make return value be an index o
 	read(connfd, crlf, 2);
 	if (crlf[0] != '\r' || crlf[1] != '\n') { /* a crlf is expected after http version,
 						     if there is none the request is invalid */
-		http_errnum = URL_LINE;
-		return 0;
+		return URL_LINE;
 	}
 
 
@@ -123,8 +112,7 @@ int parse_req(int connfd, req_t *req) { // TODO: make return value be an index o
 			if (dgetc(connfd) == '\n')
 				break;
 			else {
-				http_errnum = HEADER_SECTION;
-				return 0;
+				return HEADER_SECTION;
 			}
 		}
 
@@ -154,8 +142,7 @@ int parse_req(int connfd, req_t *req) { // TODO: make return value be an index o
 				if (dgetc(connfd) == '\n')
 					break;
 				else {
-					http_errnum = HEADER;
-					return 0;
+					return HEADER;
 				}
 			}
 		}
@@ -165,8 +152,7 @@ int parse_req(int connfd, req_t *req) { // TODO: make return value be an index o
 			if (req->headers[req->headers_len].name[i] == ':') {
 				if ((i + 2) > header_len) { /*The only ':' that was reached was at the end of
 							      the header line, thus request is invalid*/
-					http_errnum = HEADER_FORMAT;
-					return 0;
+					return HEADER_FORMAT;
 				}
 				colon_reached = 1;
 				req->headers[req->headers_len].name[i] = '\0';
@@ -178,8 +164,7 @@ int parse_req(int connfd, req_t *req) { // TODO: make return value be an index o
 			}
 		}
 		if (!colon_reached) { /*There is no colon at the end of the header line*/
-			http_errnum = HEADER_FORMAT;
-			return 0;
+			return HEADER_FORMAT;
 		}
 
 		req->headers_len++;
@@ -189,7 +174,7 @@ int parse_req(int connfd, req_t *req) { // TODO: make return value be an index o
 
 
 
-	return 1;
+	return 0;
 }
 
 char *get_header_value(header_t *headers, size_t len, char *query) {
