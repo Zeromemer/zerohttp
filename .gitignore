@@ -2,5 +2,6 @@ zerohttp
 .vscode/
 *.swp
 *.o
+*.temp
 req_src/*
 obj/*

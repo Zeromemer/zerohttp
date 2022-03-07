@@ -8,6 +8,11 @@ typedef struct {
 } header_t;
 
 typedef struct {
+	char *name;
+	char *value;
+} query_selectors_t;
+
+typedef struct {
 	char *method;
 	char *url;
 	char *ver;
@@ -26,13 +31,15 @@ enum http_req_err_t {
 };
 
 
-int parse_url(char *input, size_t input_len, char *output);
+int parse_url(char *input, size_t input_len, char *output, query_selectors_t **query_selectors, size_t *query_selectors_len);
 
 int check_url(char *url);
 
 int parse_req(int connfd, req_t *req);
 
 char *get_header_value(header_t *headers, size_t len, char *query);
+
+char *get_selector_value(query_selectors_t *query_selectors, size_t len, char *query);
 
 void send_res_status(int connfd, char *ver, int status, char *msg);
 

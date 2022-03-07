@@ -19,9 +19,54 @@ char *http_strerror(int http_errnum) {
 	return http_err_strings[http_errnum];
 }
 
-int parse_url(char *input, size_t input_len, char *output) {
+int parse_url(char *input, size_t input_len, char *output, query_selectors_t **query_selectors, size_t *query_selectors_len) {
 	int output_prog = 0;
+	
 	for (int i = 0; i < input_len; i++) {
+		if (input[i] == '?') {
+			size_t alloc_size = 1;
+			size_t index = 0;
+			*query_selectors = xcalloc(alloc_size, sizeof(query_selectors_t));
+			
+			output[output_prog++] = '\0';
+			i++;
+			int nam_or_val = 0;
+			*query_selectors_len = 1;
+			(*query_selectors)[index].name = output + output_prog;
+			while (i < input_len) {
+				if (input[i] == '=') {
+					if (!nam_or_val) {
+						(*query_selectors)[index].value = output + output_prog + 1;
+						nam_or_val = 1;
+						output[output_prog++] = '\0';
+					} else {
+						return 1;
+					}
+				} else if (input[i] == '&') {
+					if (nam_or_val) {
+						nam_or_val = 0;
+						output[output_prog++] = '\0';
+
+						(*query_selectors_len)++;
+						if (alloc_size == ++index) {
+							alloc_size *= 2;
+							*query_selectors = xreallocarray(*query_selectors, alloc_size, sizeof(query_selectors_t));
+						}
+						(*query_selectors)[index].name = output + output_prog;
+					} else {
+						return 1;
+					}
+				} else {
+					output[output_prog++] = input[i];
+				}
+
+				i++;
+			}
+
+			output[output_prog++] = '\0';
+			break;
+		}
+
 		if (input[i] == '%') {
 			if (i + 2 >= input_len)
 				return 1;
@@ -53,8 +98,6 @@ int check_url(char *url) {
 }
 
 int parse_req(int connfd, req_t *req) { // TODO: make return value be an index of http_err_strings instead of http_errnum being set
-	// getting the method and uri are not seperated into functions for performance
-
 	// get the method
 	req->method = xcalloc(1, 1);
 	unsigned int size = 1;
@@ -177,6 +220,16 @@ char *get_header_value(header_t *headers, size_t len, char *query) {
 	for (int i = 0; i < len; i++) {
 		if (!strcasecmp(headers[i].name, query)) {
 			return headers[i].value;
+		}
+	}
+
+	return NULL;
+}
+
+char *get_selector_value(query_selectors_t *query_selectors, size_t len, char *query) {
+	for (int i = 0; i < len; i++) {
+		if (!strcmp(query_selectors[i].name, query)) {
+			return query_selectors[i].value;
 		}
 	}
 

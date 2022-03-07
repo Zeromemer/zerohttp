@@ -18,7 +18,11 @@
 
 char *srcs_dir = "./req_src";
 
-void serve_regular_request(conn_t conn, req_t req, char *parsed_url) {
+void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
+	for (size_t i = 0; i < query_selectors_len; i++) {
+		printf("query selector \"%s\" = \"%s\"\n", query_selectors[i].name, query_selectors[i].value);
+	}
+
 	if (!strcmp(parsed_url, "/debug")) {
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
@@ -53,13 +57,16 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url) {
 		char *mime_type = path_to_mime(path);
 		printf("mime: %s\n", mime_type);
 
+		char *download_sel = get_selector_value(query_selectors, query_selectors_len, "download");
+
 		char content_length_s[sizeof("-2147483648")];
 		sprintf(content_length_s, "%ld", path_stat.st_size);
 
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
 		send_res_header(conn.fd, "Server", "zerohttp");
-		send_res_header(conn.fd, "Content-Type", mime_type);
+		if (download_sel && !strcmp(download_sel, "true")) send_res_header(conn.fd, "Content-Type", "application/octet-stream");
+		else send_res_header(conn.fd, "Content-Type", mime_type);
 		send_res_header(conn.fd, "Content-Length", content_length_s);
 		send_res_header(conn.fd, "Connection", "keep-alive");
 		send_res_header(conn.fd, NULL, NULL);
@@ -95,7 +102,9 @@ void *serve_request(void *conn_p) {
 	char *ip = inet_ntoa(conn.cli.sin_addr);
 
 	char parsed_url[strlen(req.url) + 1];
-	int url_status = parse_url(req.url, strlen(req.url), parsed_url);
+	query_selectors_t *query_selectors;
+	size_t query_selectors_len = 0;
+	int url_status = parse_url(req.url, strlen(req.url), parsed_url, &query_selectors, &query_selectors_len);
 
 
 	printf("%s:%d (fd: %d):\n\tmethod: %s\n\turl: %s (invalid: %d, parsed: %s)\n\tver: %s \n\tinvalid: %d\n",
@@ -120,7 +129,7 @@ void *serve_request(void *conn_p) {
 		send_res_header(conn.fd, "Connection", "close");
 		send_res_header(conn.fd, NULL, NULL);
 	} else {
-		serve_regular_request(conn, req, parsed_url);
+		serve_regular_request(conn, req, parsed_url, query_selectors, query_selectors_len);
 	}
 
 	free_req(req);
