@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 #include "include/req_handl.h"
 #include "include/http.h"
 #include "include/xmalloc.h"
@@ -20,25 +21,12 @@ char *srcs_dir = "./req_src";
 char *server = "zerohttp";
 
 void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
-	if (!strcmp(parsed_url, "/debug")) {
-		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
-
+	if (!(!strcmp(req.method, "GET") || !strcmp(req.method, "HEAD"))) {
+		send_res_status(conn.fd, "HTTP/1.1", 405, "Method Not Allowed");
+	
 		send_res_header(conn.fd, "Server", server);
 		send_res_header(conn.fd, "Connection", "close");
 		send_res_header(conn.fd, NULL, NULL);
-
-		dprintf(conn.fd, "%s:%d:\n\tmethod: %s\n\turl: %s (parsed: %s)\n\tver: %s \n\t",
-				inet_ntoa(conn.cli.sin_addr),
-				conn.cli.sin_port,
-				req.method,
-				req.url,
-				parsed_url,
-				req.ver);
-		dprintf(conn.fd, "headers:\n");
-		for (int i = 0; i < req.headers_len; i++) {
-			dprintf(conn.fd, "\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
-		}
-		
 		return;
 	}
 
@@ -65,13 +53,15 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		send_res_header(conn.fd, "Connection", "keep-alive");
 		send_res_header(conn.fd, NULL, NULL);
 
-		// send file by chunks of 4069 bytes
-		while (path_stat.st_size > CHUNK_SIZE) { /* if connection is closed the server will still send all the data, to a non existant connection
-													TODO: find way to detect closed connection */
-			sendfile(conn.fd, fd, NULL, CHUNK_SIZE);
-			path_stat.st_size -= CHUNK_SIZE;
+		if (!strcmp(req.method, "GET")) {
+			// send file by chunks of 4069 bytes
+			while (path_stat.st_size > CHUNK_SIZE) { /* if connection is closed the server will still send all the data, to a non existant connection
+														TODO: find way to detect closed connection */
+				sendfile(conn.fd, fd, NULL, CHUNK_SIZE);
+				path_stat.st_size -= CHUNK_SIZE;
+			}
+			sendfile(conn.fd, fd, NULL, path_stat.st_size);
 		}
-		sendfile(conn.fd, fd, NULL, path_stat.st_size);
 		
 		close(fd);
 		return;
@@ -87,6 +77,8 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 void *serve_request(void *conn_p) {
 	conn_t conn = *(conn_t*)conn_p;
 	xfree(conn_p);
+	struct tm time_created;
+	localtime_r(&conn.time_created, &time_created);
 	req_t req = {0};
 	int req_status = parse_req(conn.fd, &req);
 
@@ -98,7 +90,8 @@ void *serve_request(void *conn_p) {
 	int url_status = parse_url(req.url, strlen(req.url), parsed_url, &query_selectors, &query_selectors_len);
 
 
-	printf("%s:%d (fd: %d): %s %s %s\n", ip, conn.cli.sin_port, conn.fd, req.method, req.url, req.ver);
+	printf("\033[32m->\033[0m [%02d:%02d:%02d] %s:%d (fd: %d): %s %s %s\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec,
+	ip, conn.cli.sin_port, conn.fd, req.method, req.url, req.ver);
 
 	if (req_status || url_status || check_url(parsed_url)) {
 		send_res_status(conn.fd, "HTTP/1.1", 400, "Bad Request");
@@ -112,7 +105,7 @@ void *serve_request(void *conn_p) {
 
 	free_req(req);
 	close(conn.fd);
-	printf("Closed connection %d.\n", conn.fd);
+	printf("\033[31m<-\033[0m [%02d:%02d:%02d] Closed connection %d.\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec, conn.fd);
 	
 	return NULL;
 }

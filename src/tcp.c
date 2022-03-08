@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <time.h>
 
 /* Sourced from: https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/ */
 
@@ -42,6 +43,7 @@ void socket_listen(int sockfd, int backlog) {
 }
 
 int await_connection(int sockfd, conn_t *conn) {
+	conn->time_created = time(NULL);
 	socklen_t len = sizeof(conn->cli);
 	
 	conn->fd = accept(sockfd, (struct sockaddr*)&conn->cli, &len);

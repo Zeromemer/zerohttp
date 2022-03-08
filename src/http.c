@@ -142,7 +142,8 @@ int parse_req(int connfd, req_t *req) { // TODO: make return value be an index o
 	}
 
 	// get http version
-	req->ver = xmalloc(8);
+	req->ver = xmalloc(9);
+	req->ver[8] = '\0';
 	read(connfd, req->ver, 8);
 
 
