@@ -73,7 +73,6 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 				i++;
 			}
 
-			output[output_prog++] = '\0';
 			if (!((*query_selectors)[index].value)) {
 				return 1; // last query selector doesn't have a value
 			}
@@ -93,6 +92,7 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 			output[output_prog++] = input[i];
 		}
 	}
+	output[output_prog++] = '\0';
 	return 0;
 }
 
