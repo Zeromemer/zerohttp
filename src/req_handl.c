@@ -16,27 +16,36 @@
 #include "include/mime.h"
 
 #define CHUNK_SIZE 4096
+#define SERVER "zerohttp"
 
 char *srcs_dir = "./req_src";
-char *server = "zerohttp";
 
 void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
+	// check for dissalowed methods
 	if (!(!strcmp(req.method, "GET") || !strcmp(req.method, "HEAD"))) {
 		send_res_status(conn.fd, "HTTP/1.1", 405, "Method Not Allowed");
 	
-		send_res_header(conn.fd, "Server", server);
+		send_res_header(conn.fd, "Server", SERVER);
 		send_res_gmtime(conn);
+		send_res_header(conn.fd, "Allow", "GET, HEAD");
 		send_res_header(conn.fd, "Connection", "close");
 		send_res_header(conn.fd, NULL, NULL);
 		return;
 	}
 
-	char path[strlen(srcs_dir) + strlen(parsed_url)];
+	char path[strlen(srcs_dir) + strlen(parsed_url) + sizeof("index.html")];
 
 	strcat_mod(path, srcs_dir, parsed_url);
 
 
 	struct stat path_stat;
+
+	// if url points to dir append "index.html" at the end
+	if (lstat(path, &path_stat) != -1 && S_ISDIR(path_stat.st_mode) && path[strlen(path) - 1] == '/') {
+		strcat(path, "index.html");
+	}
+
+	// if file exists at path, send it
 	if (lstat(path, &path_stat) != -1 && S_ISREG(path_stat.st_mode)) {
 		int fd = open(path, O_RDONLY);
 		char *mime_type = path_to_mime(path);
@@ -46,7 +55,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
-		send_res_header(conn.fd, "Server", server);
+		send_res_header(conn.fd, "Server", SERVER);
 		send_res_gmtime(conn);
 		char *download_sel = get_selector_value(query_selectors, query_selectors_len, "download");
 		if (download_sel && !strcmp(download_sel, "true")) send_res_header(conn.fd, "Content-Type", "application/octet-stream");
@@ -69,9 +78,10 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		return;
 	}
 
+	// if this point is reached, a resource wasn't found, thus 404
 	send_res_status(conn.fd, "HTTP/1.1", 404, "Not Found");
 	send_res_gmtime(conn);
-	send_res_header(conn.fd, "Server", server);
+	send_res_header(conn.fd, "Server", SERVER);
 	send_res_header(conn.fd, "Connection", "close");
 	send_res_header(conn.fd, NULL, NULL);
 }
@@ -92,13 +102,13 @@ void *serve_request(void *conn_p) {
 	int url_status = parse_url(req.url, strlen(req.url), parsed_url, &query_selectors, &query_selectors_len);
 
 
-	printf("\033[32m->\033[0m [%02d:%02d:%02d] %s:%d (fd: %d): %s %s %s\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec,
-	ip, conn.cli.sin_port, conn.fd, req.method, req.url, req.ver);
+	printf("\033[32m->\033[0m [%02d:%02d:%02d] Opened connection %d: %s:%d: %s %s %s\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec,
+	conn.fd, ip, conn.cli.sin_port, req.method, req.url, req.ver);
 
 	if (req_status || url_status || check_url(parsed_url)) {
 		send_res_status(conn.fd, "HTTP/1.1", 400, "Bad Request");
 		
-		send_res_header(conn.fd, "Server", server);
+		send_res_header(conn.fd, "Server", SERVER);
 		send_res_gmtime(conn);
 		send_res_header(conn.fd, "Connection", "close");
 		send_res_header(conn.fd, NULL, NULL);
