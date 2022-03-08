@@ -61,17 +61,12 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		if (download_sel && !strcmp(download_sel, "true")) send_res_header(conn.fd, "Content-Type", "application/octet-stream");
 		else send_res_header(conn.fd, "Content-Type", mime_type);
 		send_res_header(conn.fd, "Content-Length", content_length_s);
-		send_res_header(conn.fd, "Connection", "keep-alive");
+		send_res_header(conn.fd, "Connection", "close");
 		send_res_header(conn.fd, NULL, NULL);
 
 		if (!strcmp(req.method, "GET")) {
 			// send file by chunks of 4069 bytes
-			while (path_stat.st_size > CHUNK_SIZE) {
-				volatile int status = sendfile(conn.fd, fd, NULL, CHUNK_SIZE); // volatile is here becouse of a gdb bug
-				if (status == -1) break;
-				path_stat.st_size -= CHUNK_SIZE;
-			}
-			sendfile(conn.fd, fd, NULL, path_stat.st_size);
+			while (sendfile(conn.fd, fd, NULL, CHUNK_SIZE) == CHUNK_SIZE);
 		}
 		
 		close(fd);
