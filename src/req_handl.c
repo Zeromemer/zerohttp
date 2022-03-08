@@ -57,7 +57,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		char *mime_type = path_to_mime(path);
 		printf("mime: %s\n", mime_type);
 
-		char *download_sel = get_selector_value(query_selectors, query_selectors_len, "download");
 
 		char content_length_s[sizeof("-2147483648")];
 		sprintf(content_length_s, "%ld", path_stat.st_size);
@@ -65,6 +64,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
 		send_res_header(conn.fd, "Server", "zerohttp");
+		char *download_sel = get_selector_value(query_selectors, query_selectors_len, "download");
 		if (download_sel && !strcmp(download_sel, "true")) send_res_header(conn.fd, "Content-Type", "application/octet-stream");
 		else send_res_header(conn.fd, "Content-Type", mime_type);
 		send_res_header(conn.fd, "Content-Length", content_length_s);
@@ -76,9 +76,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 													TODO: find way to detect closed connection */
 			sendfile(conn.fd, fd, NULL, CHUNK_SIZE);
 			path_stat.st_size -= CHUNK_SIZE;
-		}
-		if (!fd_is_valid(conn.fd)) {
-			printf("closed connection %d.\n", conn.fd);
 		}
 		sendfile(conn.fd, fd, NULL, path_stat.st_size);
 		
