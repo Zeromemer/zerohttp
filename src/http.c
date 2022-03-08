@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 char *http_err_strings[6] = {
 	NULL,
@@ -259,6 +260,15 @@ void send_res_header(int connfd, char *name, char *value) {
 	}
 
 	dprintf(connfd, "\r\n");
+}
+
+void send_res_gmtime(conn_t conn) {
+	struct tm gmt_tm;
+	gmtime_r(&conn.time_created, &gmt_tm);
+	char buff[sizeof("Mon, 01 Jan 1970 00:00:00")];
+	strftime(buff, sizeof(buff), "%c", &gmt_tm);
+
+	dprintf(conn.fd, "Date: %s GMT\r\n", buff);
 }
 
 void free_req(req_t req) {

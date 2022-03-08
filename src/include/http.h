@@ -45,6 +45,8 @@ void send_res_status(int connfd, char *ver, int status, char *msg);
 
 void send_res_header(int connfd, char *name, char *value);
 
+void send_res_gmtime(conn_t conn);
+
 void free_req(req_t req);
 
 #endif
