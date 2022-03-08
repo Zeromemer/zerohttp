@@ -249,17 +249,16 @@ char *get_selector_value(query_selectors_t *query_selectors, size_t len, char *q
 	return NULL;
 }
 
-void send_res_status(int connfd, char *ver, int status, char *msg) {
-	dprintf(connfd, "%s %d %s\r\n", ver, status, msg);
+int send_res_status(int connfd, char *ver, int status, char *msg) {
+	return dprintf(connfd, "%s %d %s\r\n", ver, status, msg);
 }
 
-void send_res_header(int connfd, char *name, char *value) {
-	if (name) {
-		dprintf(connfd, "%s: %s\r\n", name, value);
-		return;
-	}
+int send_res_header(int connfd, char *name, char *value) {
+	return dprintf(connfd, "%s: %s\r\n", name, value);
+}
 
-	dprintf(connfd, "\r\n");
+int send_res_end(int connfd) {
+	return dprintf(connfd, "\r\n");
 }
 
 void send_res_gmtime(conn_t conn) {

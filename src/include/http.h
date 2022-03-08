@@ -41,9 +41,11 @@ char *get_header_value(header_t *headers, size_t len, char *query);
 
 char *get_selector_value(query_selectors_t *query_selectors, size_t len, char *query);
 
-void send_res_status(int connfd, char *ver, int status, char *msg);
+int send_res_status(int connfd, char *ver, int status, char *msg);
 
-void send_res_header(int connfd, char *name, char *value);
+int send_res_header(int connfd, char *name, char *value);
+
+int send_res_end(int connfd);
 
 void send_res_gmtime(conn_t conn);
 

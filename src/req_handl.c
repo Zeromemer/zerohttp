@@ -29,7 +29,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		send_res_gmtime(conn);
 		send_res_header(conn.fd, "Allow", "GET, HEAD");
 		send_res_header(conn.fd, "Connection", "close");
-		send_res_header(conn.fd, NULL, NULL);
+		send_res_end(conn.fd);
 		return;
 	}
 
@@ -62,7 +62,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		else send_res_header(conn.fd, "Content-Type", mime_type);
 		send_res_header(conn.fd, "Content-Length", content_length_s);
 		send_res_header(conn.fd, "Connection", "close");
-		send_res_header(conn.fd, NULL, NULL);
+		send_res_end(conn.fd);
 
 		if (!strcmp(req.method, "GET")) {
 			// send file by chunks of 4069 bytes
@@ -78,7 +78,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	send_res_gmtime(conn);
 	send_res_header(conn.fd, "Server", SERVER);
 	send_res_header(conn.fd, "Connection", "close");
-	send_res_header(conn.fd, NULL, NULL);
+	send_res_end(conn.fd);
 }
 
 void *serve_request(void *conn_p) {
@@ -106,7 +106,7 @@ void *serve_request(void *conn_p) {
 		send_res_header(conn.fd, "Server", SERVER);
 		send_res_gmtime(conn);
 		send_res_header(conn.fd, "Connection", "close");
-		send_res_header(conn.fd, NULL, NULL);
+		send_res_end(conn.fd);
 	} else {
 		serve_regular_request(conn, req, parsed_url, query_selectors, query_selectors_len);
 	}
