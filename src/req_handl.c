@@ -17,6 +17,7 @@
 #define CHUNK_SIZE 4096
 
 char *srcs_dir = "./req_src";
+char *server = "zerohttp";
 
 void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
 	for (size_t i = 0; i < query_selectors_len; i++) {
@@ -26,7 +27,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	if (!strcmp(parsed_url, "/debug")) {
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
-		send_res_header(conn.fd, "Server", "zerohttp");
+		send_res_header(conn.fd, "Server", server);
 		send_res_header(conn.fd, "Connection", "close");
 		send_res_header(conn.fd, NULL, NULL);
 
@@ -63,7 +64,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
-		send_res_header(conn.fd, "Server", "zerohttp");
+		send_res_header(conn.fd, "Server", server);
 		char *download_sel = get_selector_value(query_selectors, query_selectors_len, "download");
 		if (download_sel && !strcmp(download_sel, "true")) send_res_header(conn.fd, "Content-Type", "application/octet-stream");
 		else send_res_header(conn.fd, "Content-Type", mime_type);
@@ -85,7 +86,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 	send_res_status(conn.fd, "HTTP/1.1", 404, "Not Found");
 	
-	send_res_header(conn.fd, "Server", "zerohttp");
+	send_res_header(conn.fd, "Server", server);
 	send_res_header(conn.fd, "Connection", "close");
 	send_res_header(conn.fd, NULL, NULL);
 }
@@ -122,7 +123,7 @@ void *serve_request(void *conn_p) {
 	if (req_status || url_status || check_url(parsed_url)) {
 		send_res_status(conn.fd, "HTTP/1.1", 400, "Bad Request");
 		
-		send_res_header(conn.fd, "Server", "zerohttp");
+		send_res_header(conn.fd, "Server", server);
 		send_res_header(conn.fd, "Connection", "close");
 		send_res_header(conn.fd, NULL, NULL);
 	} else {
