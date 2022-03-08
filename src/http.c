@@ -40,7 +40,7 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 						nam_or_val = 1;
 						output[output_prog++] = '\0';
 					} else {
-						return 1;
+						return 1; // reached equal sign after value
 					}
 				} else if (input[i] == '&') {
 					if (nam_or_val) {
@@ -53,9 +53,19 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 							*query_selectors = xreallocarray(*query_selectors, alloc_size, sizeof(query_selectors_t));
 						}
 						(*query_selectors)[index].name = output + output_prog;
+						(*query_selectors)[index].value = NULL;
 					} else {
-						return 1;
+						return 1; // last query selector doesn't have a value
 					}
+				} else if (input[i] == '%') {
+						if (i + 2 >= input_len)
+							return 1;
+
+						char c = parse_hex_byte(input + i + 1);
+						output[output_prog++] = c;
+						i += 2;
+
+						if (!c) return 1;
 				} else {
 					output[output_prog++] = input[i];
 				}
@@ -64,24 +74,25 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 			}
 
 			output[output_prog++] = '\0';
+			if (!((*query_selectors)[index].value)) {
+				return 1; // last query selector doesn't have a value
+			}
 			break;
 		}
 
 		if (input[i] == '%') {
 			if (i + 2 >= input_len)
-				return 1;
+				return 1; // reached end of input string
 
 			char c = parse_hex_byte(input + i + 1);
 			output[output_prog++] = c;
 			i += 2;
 
-			if (!c) return 1;
+			if (!c) return 1; // charecter is either null or invalid
 		} else {
 			output[output_prog++] = input[i];
 		}
 	}
-	output[output_prog++] = '\0';
-
 	return 0;
 }
 

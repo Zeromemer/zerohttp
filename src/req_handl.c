@@ -20,10 +20,6 @@ char *srcs_dir = "./req_src";
 char *server = "zerohttp";
 
 void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
-	for (size_t i = 0; i < query_selectors_len; i++) {
-		printf("query selector \"%s\" = \"%s\"\n", query_selectors[i].name, query_selectors[i].value);
-	}
-
 	if (!strcmp(parsed_url, "/debug")) {
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
@@ -49,15 +45,12 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	char path[strlen(srcs_dir) + strlen(parsed_url)];
 
 	strcat_mod(path, srcs_dir, parsed_url);
-	printf("path: %s\n", path);
 
 
 	struct stat path_stat;
 	if (lstat(path, &path_stat) != -1 && S_ISREG(path_stat.st_mode)) {
 		int fd = open(path, O_RDONLY);
 		char *mime_type = path_to_mime(path);
-		printf("mime: %s\n", mime_type);
-
 
 		char content_length_s[sizeof("-2147483648")];
 		sprintf(content_length_s, "%ld", path_stat.st_size);
@@ -105,20 +98,7 @@ void *serve_request(void *conn_p) {
 	int url_status = parse_url(req.url, strlen(req.url), parsed_url, &query_selectors, &query_selectors_len);
 
 
-	printf("%s:%d (fd: %d):\n\tmethod: %s\n\turl: %s (invalid: %d, parsed: %s)\n\tver: %s \n\tinvalid: %d\n",
-			ip,
-			conn.cli.sin_port,
-			conn.fd,
-			req.method,
-			req.url,
-			url_status,
-			parsed_url,
-			req.ver,
-			req_status);
-	printf("\theaders:\n");
-	for (int i = 0; i < req.headers_len; i++) {
-		printf("\t\t%s: %s\n", req.headers[i].name, req.headers[i].value);
-	}
+	printf("%s:%d (fd: %d): %s %s %s\n", ip, conn.cli.sin_port, conn.fd, req.method, req.url, req.ver);
 
 	if (req_status || url_status || check_url(parsed_url)) {
 		send_res_status(conn.fd, "HTTP/1.1", 400, "Bad Request");
