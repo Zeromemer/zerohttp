@@ -1,6 +1,6 @@
 # zerohttp
 This is a very basic http server made in c (still in development)  
-resource path is http://ip:port/index.html -> ./req_src/index.html
+files are served from req_src/ (e.g. http://ip:port/index.html -> ./req_src/index.html)
 
 ## Setup
 ```console
