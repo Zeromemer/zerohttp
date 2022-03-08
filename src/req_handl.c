@@ -66,9 +66,9 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 		if (!strcmp(req.method, "GET")) {
 			// send file by chunks of 4069 bytes
-			while (path_stat.st_size > CHUNK_SIZE) { /* if connection is closed the server will still send all the data, to a non existant connection
-														TODO: find way to detect closed connection */
-				sendfile(conn.fd, fd, NULL, CHUNK_SIZE);
+			while (path_stat.st_size > CHUNK_SIZE) {
+				volatile int status = sendfile(conn.fd, fd, NULL, CHUNK_SIZE); // volatile is here becouse of a gdb bug
+				if (status == -1) break;
 				path_stat.st_size -= CHUNK_SIZE;
 			}
 			sendfile(conn.fd, fd, NULL, path_stat.st_size);
