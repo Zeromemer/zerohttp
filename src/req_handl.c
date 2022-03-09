@@ -9,6 +9,7 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <pthread.h>
 #include "include/req_handl.h"
 #include "include/http.h"
 #include "include/xmalloc.h"
@@ -20,7 +21,11 @@
 
 char *srcs_dir = "./req_src";
 
+int reqs_count = 0;
+pthread_mutex_t reqs_count_lock = PTHREAD_MUTEX_INITIALIZER;
+
 void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
+
 	// check for dissalowed methods
 	if (!(!strcmp(req.method, "GET") || !strcmp(req.method, "HEAD"))) {
 		send_res_status(conn.fd, "HTTP/1.1", 405, "Method Not Allowed");
@@ -36,6 +41,29 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	char path[strlen(srcs_dir) + strlen(parsed_url) + sizeof("index.html")];
 
 	strcat_mod(path, srcs_dir, parsed_url);
+
+	if (!strcmp(parsed_url, "/status")) {
+		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
+
+		send_res_header(conn.fd, "Server", SERVER);
+		send_res_gmtime(conn);
+		send_res_header(conn.fd, "Content-Type", "text/plain");
+		send_res_header(conn.fd, "Connection", "close");
+		send_res_end(conn.fd);
+
+		dprintf(conn.fd, "requests processed: %d\n", reqs_count);
+		dprintf(conn.fd, "--- PROCESS INFORMATION ---\n\n");
+
+		int fd = open("/proc/self/status", O_RDONLY);
+		
+		char buff[1024];
+		int bytes_read = read(fd, buff, sizeof(buff));
+		write(conn.fd, buff, bytes_read);
+		
+
+		close(fd);
+		return;
+	}
 
 
 	struct stat path_stat;
@@ -91,8 +119,8 @@ void *serve_request(void *conn_p) {
 
 	char *ip = inet_ntoa(conn.cli.sin_addr);
 
-	char parsed_url[strlen(req.url) + 1];
-	query_selectors_t *query_selectors;
+	char *parsed_url = xcalloc(strlen(req.url) + 1, sizeof(char));
+	query_selectors_t *query_selectors = NULL;
 	size_t query_selectors_len = 0;
 	int url_status = parse_url(req.url, strlen(req.url), parsed_url, &query_selectors, &query_selectors_len);
 
@@ -109,9 +137,14 @@ void *serve_request(void *conn_p) {
 		send_res_end(conn.fd);
 	} else {
 		serve_regular_request(conn, req, parsed_url, query_selectors, query_selectors_len);
+		pthread_mutex_lock(&reqs_count_lock);
+		reqs_count++;
+		pthread_mutex_unlock(&reqs_count_lock);
 	}
 
 	free_req(req);
+	xfree(query_selectors);
+	xfree(parsed_url);
 	close(conn.fd);
 	printf("\033[31m<-\033[0m [%02d:%02d:%02d] Closed connection %d.\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec, conn.fd);
 	
