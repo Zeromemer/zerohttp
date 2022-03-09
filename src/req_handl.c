@@ -30,10 +30,10 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	if (!(!strcmp(req.method, "GET") || !strcmp(req.method, "HEAD"))) {
 		send_res_status(conn.fd, "HTTP/1.1", 405, "Method Not Allowed");
 	
-		send_res_header(conn.fd, "Server", SERVER);
+		send_res_headerf(conn.fd, "Server", SERVER);
 		send_res_gmtime(conn);
-		send_res_header(conn.fd, "Allow", "GET, HEAD");
-		send_res_header(conn.fd, "Connection", "close");
+		send_res_headerf(conn.fd, "Allow", "GET, HEAD");
+		send_res_headerf(conn.fd, "Connection", "close");
 		send_res_end(conn.fd);
 		return;
 	}
@@ -45,10 +45,10 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	if (!strcmp(parsed_url, "/status")) {
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
-		send_res_header(conn.fd, "Server", SERVER);
+		send_res_headerf(conn.fd, "Server", SERVER);
 		send_res_gmtime(conn);
-		send_res_header(conn.fd, "Content-Type", "text/plain");
-		send_res_header(conn.fd, "Connection", "close");
+		send_res_headerf(conn.fd, "Content-Type", "text/plain");
+		send_res_headerf(conn.fd, "Connection", "close");
 		send_res_end(conn.fd);
 
 		dprintf(conn.fd, "requests processed: %d\n", reqs_count);
@@ -78,18 +78,15 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		int fd = open(path, O_RDONLY);
 		char *mime_type = path_to_mime(path);
 
-		char content_length_s[sizeof("-2147483648")];
-		sprintf(content_length_s, "%ld", path_stat.st_size);
-
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
-		send_res_header(conn.fd, "Server", SERVER);
+		send_res_headerf(conn.fd, "Server", SERVER);
 		send_res_gmtime(conn);
 		char *download_sel = get_selector_value(query_selectors, query_selectors_len, "download");
-		if (download_sel && !strcmp(download_sel, "true")) send_res_header(conn.fd, "Content-Type", "application/octet-stream");
-		else send_res_header(conn.fd, "Content-Type", mime_type);
-		send_res_header(conn.fd, "Content-Length", content_length_s);
-		send_res_header(conn.fd, "Connection", "close");
+		if (download_sel && !strcmp(download_sel, "true")) send_res_headerf(conn.fd, "Content-Type", "application/octet-stream");
+		else send_res_headerf(conn.fd, "Content-Type", "%s", mime_type);
+		send_res_headerf(conn.fd, "Content-Length", "%ld", path_stat.st_size);
+		send_res_headerf(conn.fd, "Connection", "close");
 		send_res_end(conn.fd);
 
 		if (!strcmp(req.method, "GET")) {
@@ -104,8 +101,8 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	// if this point is reached, a resource wasn't found, thus 404
 	send_res_status(conn.fd, "HTTP/1.1", 404, "Not Found");
 	send_res_gmtime(conn);
-	send_res_header(conn.fd, "Server", SERVER);
-	send_res_header(conn.fd, "Connection", "close");
+	send_res_headerf(conn.fd, "Server", SERVER);
+	send_res_headerf(conn.fd, "Connection", "close");
 	send_res_end(conn.fd);
 }
 
@@ -131,9 +128,9 @@ void *serve_request(void *conn_p) {
 	if (req_status || url_status || check_url(parsed_url)) {
 		send_res_status(conn.fd, "HTTP/1.1", 400, "Bad Request");
 		
-		send_res_header(conn.fd, "Server", SERVER);
+		send_res_headerf(conn.fd, "Server", SERVER);
 		send_res_gmtime(conn);
-		send_res_header(conn.fd, "Connection", "close");
+		send_res_headerf(conn.fd, "Connection", "close");
 		send_res_end(conn.fd);
 	} else {
 		serve_regular_request(conn, req, parsed_url, query_selectors, query_selectors_len);

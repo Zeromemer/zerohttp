@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
+#include <stdarg.h>
 
 char *http_err_strings[6] = {
 	NULL,
@@ -253,8 +254,18 @@ int send_res_status(int connfd, char *ver, int status, char *msg) {
 	return dprintf(connfd, "%s %d %s\r\n", ver, status, msg);
 }
 
-int send_res_header(int connfd, char *name, char *value) {
-	return dprintf(connfd, "%s: %s\r\n", name, value);
+int send_res_headerf(int connfd, char *header_name, char *format, ...) {
+	va_list args;
+	int status;
+
+	va_start(args, format);
+
+	dprintf(connfd, "%s: ", header_name);
+	status = vdprintf(connfd, format, args);
+	write(connfd, "\r\n", 2);
+	
+	va_end(args);
+	return status;
 }
 
 int send_res_end(int connfd) {
