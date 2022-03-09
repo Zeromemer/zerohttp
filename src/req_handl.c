@@ -148,5 +148,5 @@ void *serve_request(void *conn_p) {
 	close(conn.fd);
 	printf("\033[31m<-\033[0m [%02d:%02d:%02d] Closed connection %d.\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec, conn.fd);
 	
-	return NULL;
+	pthread_exit(NULL);
 }
