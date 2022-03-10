@@ -254,7 +254,7 @@ int send_res_status(int connfd, char *ver, int status, char *msg) {
 	return dprintf(connfd, "%s %d %s\r\n", ver, status, msg);
 }
 
-int send_res_headerf(int connfd, char *header_name, const char *format, ...) {
+int send_res_headerf(int connfd, const char *header_name, const char *format, ...) {
 	va_list args;
 	int status;
 
@@ -278,7 +278,7 @@ void send_res_gmtime(conn_t conn) {
 	char buff[sizeof("Thu, 01 Jan 1970 00:00:00")];
 	strftime(buff, sizeof(buff), "%c", &gmt_tm);
 
-	dprintf(conn.fd, "Date: %s GMT\r\n", buff);
+	send_res_headerf(conn.fd, "Date", "%s GMT", buff);
 }
 
 void free_req(req_t req) {

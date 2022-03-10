@@ -76,7 +76,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	// if file exists at path, send it
 	if (lstat(path, &path_stat) != -1 && S_ISREG(path_stat.st_mode)) {
 		int fd = open(path, O_RDONLY);
-		char *mime_type = path_to_mime(path);
 
 		send_res_status(conn.fd, "HTTP/1.1", 200, "OK");
 
@@ -84,7 +83,10 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		send_res_gmtime(conn);
 		char *download_sel = get_selector_value(query_selectors, query_selectors_len, "download");
 		if (download_sel && !strcmp(download_sel, "true")) send_res_headerf(conn.fd, "Content-Type", "application/octet-stream");
-		else send_res_headerf(conn.fd, "Content-Type", "%s", mime_type);
+		else send_res_headerf(conn.fd, "Content-Type", "%s",
+							 (download_sel && !strcmp(download_sel, "true")) ?
+							 "application/octet-stream" :
+							 path_to_mime(path));
 		send_res_headerf(conn.fd, "Content-Length", "%ld", path_stat.st_size);
 		send_res_headerf(conn.fd, "Connection", "close");
 		send_res_end(conn.fd);

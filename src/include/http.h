@@ -46,7 +46,7 @@ int send_res_status(int connfd, char *ver, int status, char *msg);
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((__format__(__printf__, 3, 4))) // printf type checking
 #endif
-int send_res_headerf(int connfd, char *header_name, const char *format, ...);
+int send_res_headerf(int connfd, const char *header_name, const char *format, ...);
 
 int send_res_end(int connfd);
 
