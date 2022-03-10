@@ -8,6 +8,8 @@
 #include <time.h>
 #include <stdarg.h>
 
+#define SRH_BUFF_SIZE 8192
+
 char *http_err_strings[6] = {
 	NULL,
 	"Malformed URL",
@@ -256,16 +258,22 @@ int send_res_status(int connfd, char *ver, int status, char *msg) {
 
 int send_res_headerf(int connfd, const char *header_name, const char *format, ...) {
 	va_list args;
-	int status;
+	char *buff = xcalloc(SRH_BUFF_SIZE, sizeof(char));
+	char *prog = buff;
 
 	va_start(args, format);
 
-	dprintf(connfd, "%s: ", header_name);
-	status = vdprintf(connfd, format, args);
-	write(connfd, "\r\n", 2);
+	prog += snprintf(prog, SRH_BUFF_SIZE - 2, "%s: ", header_name);
+	prog += vsnprintf(prog, SRH_BUFF_SIZE - 2 - (prog - buff), format, args);
+	prog[0] = '\r';
+	prog[1] = '\n';
+	prog += 2;
+
+	write(connfd, buff, prog - buff);
 	
 	va_end(args);
-	return status;
+	xfree(buff);
+	return prog - buff;
 }
 
 int send_res_end(int connfd) {

@@ -5,6 +5,8 @@ objects=$(patsubst src/%.c, obj/%.o, $(sources))
 cflags=-g -Wall
 lflags=-lpthread
 
+all: $(exec)
+
 $(exec): $(objects)
 	$(CC) $(objects) $(lflags) -o $(exec)
 

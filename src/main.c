@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 		int status = await_connection(sockfd, conn);
 		
 		if (status) {
-			fprintf(stderr, "Could not accept client: %s\n", strerror(errno));
+			fprintf(stderr, "\033[31mERROR: \033[0mCould not accept client: %s\n", strerror(errno));
 			continue;
 		}
 
@@ -38,5 +38,4 @@ int main(int argc, char **argv) {
 		pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 		pthread_create(&thread, NULL, serve_request, conn);
 	}
-	close(sockfd);
 }
