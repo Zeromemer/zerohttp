@@ -39,8 +39,7 @@ int main(int argc, char **argv) {
 		}
 
 		pthread_t thread;
-		pthread_attr_t attrs;
-		pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 		pthread_create(&thread, NULL, serve_request, conn);
+		pthread_detach(thread);
 	}
 }
