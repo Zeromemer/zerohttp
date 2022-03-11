@@ -2,10 +2,12 @@ exec=zerohttp
 CC=gcc
 sources=$(wildcard src/*.c)
 objects=$(patsubst src/%.c, obj/%.o, $(sources))
-cflags=-g -Wall
+cflags=-Wall
 lflags=-lpthread
 
 all: $(exec)
+debug: cflags+= -g -DDEBUG
+debug: $(exec)
 
 $(exec): $(objects)
 	$(CC) $(objects) $(lflags) -o $(exec)
