@@ -43,10 +43,10 @@ void socket_listen(int sockfd, int backlog) {
 }
 
 int await_connection(int sockfd, conn_t *conn) {
-	conn->time_created = time(NULL);
 	socklen_t len = sizeof(conn->cli);
 	
 	conn->fd = accept(sockfd, (struct sockaddr*)&conn->cli, &len);
+	conn->time_created = time(NULL);
 	if (conn->fd < 0) {
 		return 1;
 	}

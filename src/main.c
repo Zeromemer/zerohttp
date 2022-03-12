@@ -16,8 +16,8 @@
 int main(int argc, char **argv) {
 	char *port_s = argv[1];
 	int port = port_s ? atoi(port_s) : 42069;
-	if (port > 65535) {
-		fprintf(stderr, "Could not bind socket: Port number out of range\n"); // if libc isn't going to check the port number, I will
+	if (port > 65535 || port < 1) {
+		fprintf(stderr, "Port %d out of range\n", port); // if libc isn't going to check the port number, I will
 		return 1;
 	}
 
