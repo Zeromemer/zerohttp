@@ -145,7 +145,10 @@ void *serve_request(void *conn_p) {
 	xfree(query_selectors);
 	xfree(parsed_url);
 	close(conn.fd);
-	printf("\033[31m<-\033[0m [%02d:%02d:%02d] Closed connection %d.\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec, conn.fd);
+	struct tm time_closed;
+	time_t current_time = time(NULL);
+	localtime_r(&current_time, &time_closed);
+	printf("\033[31m<-\033[0m [%02d:%02d:%02d] Closed connection %d.\n", time_closed.tm_hour, time_closed.tm_min, time_closed.tm_sec, conn.fd);
 	
 	return NULL;
 }
