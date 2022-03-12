@@ -5,7 +5,7 @@
 
 typedef struct {
 	int fd;
-	struct sockaddr_in cli;
+	struct sockaddr_in data;
 	time_t time_created;
 } conn_t;
 

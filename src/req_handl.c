@@ -116,7 +116,7 @@ void *serve_request(void *conn_p) {
 	req_t req = {0};
 	int req_status = parse_req(conn.fd, &req);
 
-	char *ip = inet_ntoa(conn.cli.sin_addr);
+	char *ip = inet_ntoa(conn.data.sin_addr);
 
 	char *parsed_url = xcalloc(strlen(req.url) + 1, sizeof(char));
 	query_selectors_t *query_selectors = NULL;
@@ -125,7 +125,7 @@ void *serve_request(void *conn_p) {
 
 
 	printf("\033[32m->\033[0m [%02d:%02d:%02d] Opened connection %d: %s:%d: %s %s %s\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec,
-		   conn.fd, ip, htons(conn.cli.sin_port), req.method, req.url, req.ver);
+		   conn.fd, ip, htons(conn.data.sin_port), req.method, req.url, req.ver);
 
 	if (req_status || url_status || check_url(parsed_url)) {
 		send_res_status(conn.fd, "HTTP/1.1", 400, "Bad Request");
