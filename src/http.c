@@ -252,11 +252,11 @@ char *get_selector_value(query_selectors_t *query_selectors, size_t len, char *q
 	return NULL;
 }
 
-int send_res_status(int connfd, char *ver, int status, char *msg) {
+int res_send_status(int connfd, char *ver, int status, char *msg) {
 	return dprintf(connfd, "%s %d %s\r\n", ver, status, msg);
 }
 
-int send_res_headerf(int connfd, const char *header_name, const char *format, ...) {
+int res_send_headerf(int connfd, const char *header_name, const char *format, ...) {
 	va_list args;
 	char *buff = xcalloc(SRH_BUFF_SIZE, sizeof(char));
 	char *prog = buff;
@@ -276,17 +276,17 @@ int send_res_headerf(int connfd, const char *header_name, const char *format, ..
 	return prog - buff;
 }
 
-int send_res_end(int connfd) {
+int res_send_end(int connfd) {
 	return dprintf(connfd, "\r\n");
 }
 
-void send_res_gmtime(conn_t conn) {
+void res_send_gmtime(conn_t conn) {
 	struct tm gmt_tm;
 	gmtime_r(&conn.time_created, &gmt_tm);
 	char buff[sizeof("Thu, 01 Jan 1970 00:00:00")];
 	strftime(buff, sizeof(buff), "%c", &gmt_tm);
 
-	send_res_headerf(conn.fd, "Date", "%s GMT", buff);
+	res_send_headerf(conn.fd, "Date", "%s GMT", buff);
 }
 
 void free_req(req_t req) {

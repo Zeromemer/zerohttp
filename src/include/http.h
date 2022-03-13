@@ -41,16 +41,16 @@ char *get_header_value(header_t *headers, size_t len, char *query);
 
 char *get_selector_value(query_selectors_t *query_selectors, size_t len, char *query);
 
-int send_res_status(int connfd, char *ver, int status, char *msg);
+int res_send_status(int connfd, char *ver, int status, char *msg);
 
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((__format__(__printf__, 3, 4))) // printf type checking
 #endif
-int send_res_headerf(int connfd, const char *header_name, const char *format, ...);
+int res_send_headerf(int connfd, const char *header_name, const char *format, ...);
 
-int send_res_end(int connfd);
+int res_send_end(int connfd);
 
-void send_res_gmtime(conn_t conn);
+void res_send_gmtime(conn_t conn);
 
 void free_req(req_t req);
 
