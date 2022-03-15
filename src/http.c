@@ -112,7 +112,7 @@ int check_url(char *url) {
 	return 0;
 }
 
-int parse_req(int connfd, req_t *req) { // TODO: make return value be an index of http_err_strings instead of http_errnum being set
+int parse_req(int connfd, req_t *req) {
 	// get the method
 	req->method = xcalloc(1, 1);
 	unsigned int size = 1;
