@@ -21,9 +21,6 @@
 
 char *srcs_dir = "./req_src";
 
-int reqs_count = 0;
-pthread_mutex_t reqs_count_lock = PTHREAD_MUTEX_INITIALIZER;
-
 void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
 
 	// check for dissalowed methods
@@ -46,9 +43,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		res_send_headerf(conn.fd, "Content-Type", "text/plain");
 		res_send_headerf(conn.fd, "Connection", "close");
 		res_send_end(conn.fd);
-
-		dprintf(conn.fd, "requests processed: %d\n", reqs_count);
-		dprintf(conn.fd, "--- PROCESS INFORMATION ---\n\n");
 
 		int fd = open("/proc/self/status", O_RDONLY);
 		
@@ -77,6 +71,19 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	// if file exists at path, send it
 	if (lstat(path, &path_stat) != -1 && S_ISREG(path_stat.st_mode)) {
 		int fd = open(path, O_RDONLY);
+
+		if (fd == -1) {
+			res_send_status(conn.fd, "HTTP/1.1", 503, "Service Unavaliable");
+			res_send_headerf(conn.fd, "Server", SERVER);
+			res_send_gmtime(conn);
+			res_send_headerf(conn.fd, "Content-Type", "text/plain");
+			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_end(conn.fd);
+
+			dprintf(conn.fd, "Error: %s\n", strerror(errno));
+
+			return;
+		}
 
 		res_send_status(conn.fd, "HTTP/1.1", 200, "OK");
 
@@ -133,13 +140,17 @@ void *serve_request(void *conn_p) {
 		
 		res_send_headerf(conn.fd, "Server", SERVER);
 		res_send_gmtime(conn);
+		res_send_headerf(conn.fd, "Content-Type", "text/plain");
 		res_send_headerf(conn.fd, "Connection", "close");
 		res_send_end(conn.fd);
+
+		if (req_status || url_status) {
+			dprintf(conn.fd, "Error: %s\n", http_strerror((req_status ? req_status : url_status)));
+		} else {
+			dprintf(conn.fd, "Error: \"..\" isn't allowed in URL\n");
+		}
 	} else {
 		serve_regular_request(conn, req, parsed_url, query_selectors, query_selectors_len);
-		pthread_mutex_lock(&reqs_count_lock);
-		reqs_count++;
-		pthread_mutex_unlock(&reqs_count_lock);
 	}
 
 	free_req(req);

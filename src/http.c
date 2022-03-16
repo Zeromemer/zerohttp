@@ -10,13 +10,16 @@
 
 #define SRH_BUFF_SIZE 8192
 
-char *http_err_strings[6] = {
+char *http_err_strings[] = {
 	NULL,
 	"Malformed URL",
-	"No crlf after URL line",
-	"No crlf after header",
-	"No crlf after ending of headers section",
-	"Incorrect header formating"
+	"Invalid URL line",
+	"Invalid CRLF after header",
+	"Invalid CRLF after headers section",
+	"Incorrect header formating",
+	"Invalid hex after '%' in url"
+	"Equal sign after value in URL query",
+	"URL query without a value",
 };
 
 char *http_strerror(int http_errnum) {
@@ -44,7 +47,7 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 						nam_or_val = 1;
 						output[output_prog++] = '\0';
 					} else {
-						return 1; // reached equal sign after value
+						return EXTRA_EQUAL_SIGN;
 					}
 				} else if (input[i] == '&') {
 					if (nam_or_val) {
@@ -59,17 +62,17 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 						(*query_selectors)[index].name = output + output_prog;
 						(*query_selectors)[index].value = NULL;
 					} else {
-						return 1; // last query selector doesn't have a value
+						return NO_VALUE_QUERY;
 					}
 				} else if (input[i] == '%') {
 						if (i + 2 >= input_len)
-							return 1;
+							return INVALID_URL_HEX;
 
 						char c = parse_hex_byte(input + i + 1);
 						output[output_prog++] = c;
 						i += 2;
 
-						if (!c) return 1;
+						if (!c) return INVALID_URL_HEX;
 				} else {
 					output[output_prog++] = input[i];
 				}
@@ -78,20 +81,20 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 			}
 
 			if (!((*query_selectors)[index].value)) {
-				return 1; // last query selector doesn't have a value
+				return NO_VALUE_QUERY;
 			}
 			break;
 		}
 
 		if (input[i] == '%') {
 			if (i + 2 >= input_len)
-				return 1; // reached end of input string
+				return INVALID_URL_HEX;
 
 			char c = parse_hex_byte(input + i + 1);
 			output[output_prog++] = c;
 			i += 2;
 
-			if (!c) return 1; // charecter is either null or invalid
+			if (!c) return INVALID_URL_HEX;
 		} else {
 			output[output_prog++] = input[i];
 		}

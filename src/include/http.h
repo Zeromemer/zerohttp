@@ -27,9 +27,14 @@ enum http_req_err_t {
 	URL_LINE,
 	HEADER,
 	HEADER_SECTION,
-	HEADER_FORMAT
+	HEADER_FORMAT,
+	INVALID_URL_HEX,
+	EXTRA_EQUAL_SIGN,
+	NO_VALUE_QUERY,
 };
 
+
+char *http_strerror(int http_errnum);
 
 int parse_url(char *input, size_t input_len, char *output, query_selectors_t **query_selectors, size_t *query_selectors_len);
 
