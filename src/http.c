@@ -117,9 +117,9 @@ int check_url(char *url) {
 
 int parse_req(int connfd, req_t *req) {
 	// get the method
-	req->method = xcalloc(1, 1);
 	unsigned int size = 1;
 	unsigned int len = 0;
+	req->method = xcalloc(size, 1);
 
 	char c;
 	while ((c = dgetc(connfd)) != ' ') {
@@ -133,9 +133,9 @@ int parse_req(int connfd, req_t *req) {
 
 
 	// get the url
-	req->url = xcalloc(1, 1);
 	size = 1;
 	len = 0;
+	req->url = xcalloc(size, 1);
 
 	while ((c = dgetc(connfd)) != ' ') {
 		req->url[len] = c;
@@ -151,9 +151,9 @@ int parse_req(int connfd, req_t *req) {
 
 
 	// get http version
-	req->ver = xcalloc(1, 1);
 	size = 1;
 	len = 0;
+	req->ver = xcalloc(size, 1);
 
 	while ((c = dgetc(connfd)) != '\r') {
 		req->ver[len] = c;
@@ -162,15 +162,17 @@ int parse_req(int connfd, req_t *req) {
 			req->ver = xrealloc(req->ver, size);
 		}
 	}
+	req->ver[len] = '\0';
 	if (dgetc(connfd) != '\n') {
 		return URL_LINE;
 	}
+	
 
 
 	// get headers
-	req->headers = xmalloc(sizeof(header_t));
 	req->headers_len = 0;
 	req->headers_alloc_len = 1;
+	req->headers = xcalloc(req->headers_alloc_len , sizeof(header_t));
 
 	for (;;) {
 		// check if we've reached the end of the headers section
@@ -183,9 +185,9 @@ int parse_req(int connfd, req_t *req) {
 		}
 
 		
-		req->headers[req->headers_len].name = xmalloc(1);
 		unsigned int header_size = 1;
 		unsigned int header_len = 0;
+		req->headers[req->headers_len].name = xcalloc(header_size, 1);
 		if (req->headers_alloc_len == req->headers_len + 1) {
 			req->headers_alloc_len *= 2;
 			req->headers = xreallocarray(req->headers, req->headers_alloc_len, sizeof(header_t));
