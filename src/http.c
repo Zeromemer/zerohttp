@@ -131,6 +131,7 @@ int parse_req(int connfd, req_t *req) {
 	}
 	req->method[len] = '\0';
 
+
 	// get the url
 	req->url = xcalloc(1, 1);
 	size = 1;
@@ -148,26 +149,29 @@ int parse_req(int connfd, req_t *req) {
 		return URL;
 	}
 
+
 	// get http version
-	req->ver = xmalloc(9);
-	req->ver[8] = '\0';
-	read(connfd, req->ver, 8);
+	req->ver = xcalloc(1, 1);
+	size = 1;
+	len = 0;
 
-
-	char crlf[2];
-	read(connfd, crlf, 2);
-	if (crlf[0] != '\r' || crlf[1] != '\n') { /* a crlf is expected after http version,
-						     if there is none the request is invalid */
+	while ((c = dgetc(connfd)) != '\r') {
+		req->ver[len] = c;
+		if (size == ++len) {
+			size *= 2;
+			req->ver = xrealloc(req->ver, size);
+		}
+	}
+	if (dgetc(connfd) != '\n') {
 		return URL_LINE;
 	}
 
 
+	// get headers
 	req->headers = xmalloc(sizeof(header_t));
 	req->headers_len = 0;
 	req->headers_alloc_len = 1;
 
-	
-	// get headers
 	for (;;) {
 		// check if we've reached the end of the headers section
 		if ((c = dgetc(connfd)) == '\r') {
