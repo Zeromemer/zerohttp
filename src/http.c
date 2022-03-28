@@ -115,14 +115,14 @@ int check_url(char *url) {
 	return 0;
 }
 
-int parse_req(int connfd, req_t *req) {
+int parse_req(int fd, req_t *req) {
 	// get the method
 	unsigned int size = 1;
 	unsigned int len = 0;
 	req->method = xcalloc(size, 1);
 
 	char c;
-	while ((c = dgetc(connfd)) != ' ') {
+	while ((c = dgetc(fd)) != ' ') {
 		req->method[len] = c;
 		if (size == ++len) {
 			size *= 2;
@@ -137,7 +137,7 @@ int parse_req(int connfd, req_t *req) {
 	len = 0;
 	req->url = xcalloc(size, 1);
 
-	while ((c = dgetc(connfd)) != ' ') {
+	while ((c = dgetc(fd)) != ' ') {
 		req->url[len] = c;
 		if (size == ++len) {
 			size *= 2;
@@ -155,7 +155,7 @@ int parse_req(int connfd, req_t *req) {
 	len = 0;
 	req->ver = xcalloc(size, 1);
 
-	while ((c = dgetc(connfd)) != '\r') {
+	while ((c = dgetc(fd)) != '\r') {
 		req->ver[len] = c;
 		if (size == ++len) {
 			size *= 2;
@@ -163,7 +163,7 @@ int parse_req(int connfd, req_t *req) {
 		}
 	}
 	req->ver[len] = '\0';
-	if (dgetc(connfd) != '\n') {
+	if (dgetc(fd) != '\n') {
 		return URL_LINE;
 	}
 	
@@ -176,8 +176,8 @@ int parse_req(int connfd, req_t *req) {
 
 	for (;;) {
 		// check if we've reached the end of the headers section
-		if ((c = dgetc(connfd)) == '\r') {
-			if (dgetc(connfd) == '\n')
+		if ((c = dgetc(fd)) == '\r') {
+			if (dgetc(fd) == '\n')
 				break;
 			else {
 				return HEADER_SECTION;
@@ -205,9 +205,9 @@ int parse_req(int connfd, req_t *req) {
 			}
 
 
-			c = dgetc(connfd);
+			c = dgetc(fd);
 			if (c == '\r') {
-				if (dgetc(connfd) == '\n')
+				if (dgetc(fd) == '\n')
 					break;
 				else {
 					return HEADER;
@@ -261,11 +261,11 @@ char *get_selector_value(query_selectors_t *query_selectors, size_t len, char *q
 	return NULL;
 }
 
-int res_send_status(int connfd, char *ver, int status, char *msg) {
-	return dprintf(connfd, "%s %d %s\r\n", ver, status, msg);
+int res_send_status(int fd, char *ver, int status, char *msg) {
+	return dprintf(fd, "%s %d %s\r\n", ver, status, msg);
 }
 
-int res_send_headerf(int connfd, const char *header_name, const char *format, ...) {
+int res_send_headerf(int fd, const char *header_name, const char *format, ...) {
 	va_list args;
 	char *buff = xcalloc(SRH_BUFF_SIZE, sizeof(char));
 	char *prog = buff;
@@ -278,15 +278,15 @@ int res_send_headerf(int connfd, const char *header_name, const char *format, ..
 	prog[1] = '\n';
 	prog += 2;
 
-	write(connfd, buff, prog - buff);
+	write(fd, buff, prog - buff);
 	
 	va_end(args);
 	xfree(buff);
 	return prog - buff;
 }
 
-int res_send_end(int connfd) {
-	return dprintf(connfd, "\r\n");
+int res_send_end(int fd) {
+	return dprintf(fd, "\r\n");
 }
 
 void res_send_gmtime(conn_t conn) {
