@@ -17,7 +17,7 @@ char *http_err_strings[] = {
 	"Invalid CRLF after header",
 	"Invalid CRLF after headers section",
 	"Incorrect header formating",
-	"Invalid hex after '%' in url"
+	"Invalid hex after '%' in url",
 	"Equal sign after value in URL query",
 	"URL query without a value",
 };
@@ -31,6 +31,11 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 	
 	for (int i = 0; i < input_len; i++) {
 		if (input[i] == '?') {
+			// exit loop if there is nothing after the '?'
+			if (i == input_len - 1) {
+				break;
+			}
+
 			size_t alloc_size = 1;
 			size_t index = 0;
 			*query_selectors = xcalloc(alloc_size, sizeof(query_selectors_t));
