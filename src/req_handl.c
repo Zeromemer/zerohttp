@@ -18,10 +18,106 @@
 
 #define CHUNK_SIZE 4096
 #define SERVER "zerohttp"
+#define MAX_REQUEST_SIZE 8192
 
 char *srcs_dir = "./req_src";
 
 void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
+
+	// if the path == "/file_test" print the body of the request
+	if (strcmp(parsed_url, "/file_test") == 0) {
+		if (strncmp(req.method, "POST", 4) != 0) {
+			res_send_status(conn.fd, "HTTP/1.1", 405, "Method Not Allowed");
+
+			res_send_gmtime(conn);
+			res_send_headerf(conn.fd, "Server", SERVER);
+			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_end(conn.fd);
+
+			return;
+		}
+
+		// get Content-Type
+		char *content_type = get_header_value(req.headers, req.headers_len, "Content-Type");
+		if (content_type == NULL) {
+			res_send_status(conn.fd, "HTTP/1.1", 415, "Unsupported Media Type");
+
+			res_send_gmtime(conn);
+			res_send_headerf(conn.fd, "Server", SERVER);
+			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_end(conn.fd);
+
+			return;
+		}
+
+		// if Content-Type isn't with main type "text" return 415 Unsupported Media Type
+		if (strncmp(content_type, "text", 4) != 0) {
+			res_send_status(conn.fd, "HTTP/1.1", 415, "Unsupported Media Type");
+
+			res_send_gmtime(conn);
+			res_send_headerf(conn.fd, "Server", SERVER);
+			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_end(conn.fd);
+
+			return;
+		}
+
+
+		// get the Content-Length of the request
+		char *content_length = get_header_value(req.headers, req.headers_len, "Content-Length");
+		if (!content_length) {
+			res_send_status(conn.fd, "HTTP/1.1", 411, "Length Required");
+
+			res_send_gmtime(conn);
+			res_send_headerf(conn.fd, "Server", SERVER);
+			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_end(conn.fd);
+
+			return;
+		}
+		int content_length_int = atoi(content_length);
+
+		// if the request is too big, send a 413 Request Entity Too Large
+		if (content_length_int > MAX_REQUEST_SIZE) {
+			res_send_status(conn.fd, "HTTP/1.1", 413, "Request Entity Too Large");
+
+			res_send_gmtime(conn);
+			res_send_headerf(conn.fd, "Server", SERVER);
+			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_end(conn.fd);
+
+			return;
+		}
+
+		// get the body of the request
+		char *body = xcalloc(content_length_int + 1, sizeof(char));
+		if (recv(conn.fd, body, content_length_int, 0) < 0) {
+			// send a 500 Internal Server Error response
+			res_send_status(conn.fd, "HTTP/1.1", 500, "Internal Server Error");
+
+			res_send_gmtime(conn);
+			res_send_headerf(conn.fd, "Server", SERVER);
+			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_end(conn.fd);
+
+			return;
+		}
+		
+		// null terminate the body and print it
+		body[content_length_int] = '\0';
+		printf("%s\n", body);
+		xfree(body);
+
+		// send a 204 No Content response
+		res_send_status(conn.fd, "HTTP/1.1", 204, "No Content");
+
+		res_send_gmtime(conn);
+		res_send_headerf(conn.fd, "Server", SERVER);
+		res_send_headerf(conn.fd, "Connection", "close");
+		res_send_end(conn.fd);
+
+		return;
+	}
 
 	// check for dissalowed methods
 	if (!(!strcmp(req.method, "GET") || !strcmp(req.method, "HEAD"))) {
