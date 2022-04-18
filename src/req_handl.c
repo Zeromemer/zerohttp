@@ -100,14 +100,14 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	}
 
 	// check for dissalowed methods
-	if (!(!strcmp(req.method, "GET") || !strcmp(req.method, "HEAD"))) {
+	if (strcmp(req.method, "GET") == 0 || strcmp(req.method, "HEAD") == 0) {
 		res_send_default(conn, 405, "Method Not Allowed");
 		res_send_headerf(conn, "Allow", "GET, HEAD");
 		res_send_end(conn);
 		return;
 	}
 
-	if (!strcmp(parsed_url, "/status")) {
+	if (strcmp(parsed_url, "/status") == 0) {
 		res_send_default(conn, 200, "OK");
 		res_send_headerf(conn, "Content-Type", "text/plain");
 		res_send_end(conn);
@@ -152,15 +152,15 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 		res_send_default(conn, 200, "OK");
 		char *download_sel = get_selector_value(query_selectors, query_selectors_len, "download");
-		if (download_sel && !strcmp(download_sel, "true")) res_send_headerf(conn, "Content-Type", "application/octet-stream");
+		if (download_sel && strcmp(download_sel, "true") == 0) res_send_headerf(conn, "Content-Type", "application/octet-stream");
 		else res_send_headerf(conn, "Content-Type", "%s",
-							 (download_sel && !strcmp(download_sel, "true")) ?
+							 (download_sel && strcmp(download_sel, "true") == 0) ?
 							 "application/octet-stream" :
 							 path_to_mime(path));
 		res_send_headerf(conn, "Content-Length", "%ld", path_stat.st_size);
 		res_send_end(conn);
 
-		if (!strcmp(req.method, "GET")) {
+		if (strcmp(req.method, "GET") == 0) {
 			// send file by chunks of 4069 bytes
 			while (sendfile(conn.fd, fd, NULL, CHUNK_SIZE) == CHUNK_SIZE);
 		}
