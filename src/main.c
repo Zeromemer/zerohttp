@@ -13,6 +13,10 @@
 #include "include/xmalloc.h"
 #include "include/req_handl.h"
 
+void signal_handler(int signal) {
+	printf("catch signal %d\n", signal);
+}
+
 int main(int argc, char **argv) {
 	char *port_s = argv[1];
 	int port = port_s ? atoi(port_s) : 42069;
@@ -21,8 +25,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	struct sigaction sig_conf = {{SIG_IGN}};
-	sigaction(SIGPIPE, &sig_conf, NULL);
+	signal(SIGPIPE, signal_handler);
 	
 	int sockfd = create_bound_socket(port);
 

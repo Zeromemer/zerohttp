@@ -22,16 +22,20 @@
 
 char *srcs_dir = "./req_src";
 
+void res_send_default(conn_t conn, int status, char *msg) {
+	res_send_status(conn.fd, "HTTP/1.1", status, msg);
+
+	res_send_gmtime(conn);
+	res_send_headerf(conn.fd, "Server", SERVER);
+	res_send_headerf(conn.fd, "Connection", "close");
+}
+
 void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
 
 	// if the path == "/file_test" print the body of the request
 	if (strcmp(parsed_url, "/file_test") == 0) {
 		if (strncmp(req.method, "POST", 4) != 0) {
-			res_send_status(conn.fd, "HTTP/1.1", 405, "Method Not Allowed");
-
-			res_send_gmtime(conn);
-			res_send_headerf(conn.fd, "Server", SERVER);
-			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_default(conn, 405, "Method Not Allowed");
 			res_send_end(conn.fd);
 
 			return;
@@ -40,11 +44,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		// get Content-Type
 		char *content_type = get_header_value(req.headers, req.headers_len, "Content-Type");
 		if (content_type == NULL) {
-			res_send_status(conn.fd, "HTTP/1.1", 415, "Unsupported Media Type");
-
-			res_send_gmtime(conn);
-			res_send_headerf(conn.fd, "Server", SERVER);
-			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_default(conn, 415, "Unsupported Media Type");
 			res_send_end(conn.fd);
 
 			return;
@@ -52,11 +52,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 		// if Content-Type isn't with main type "text" return 415 Unsupported Media Type
 		if (strncmp(content_type, "text", 4) != 0) {
-			res_send_status(conn.fd, "HTTP/1.1", 415, "Unsupported Media Type");
-
-			res_send_gmtime(conn);
-			res_send_headerf(conn.fd, "Server", SERVER);
-			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_default(conn, 415, "Unsupported Media Type");
 			res_send_end(conn.fd);
 
 			return;
@@ -66,11 +62,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		// get the Content-Length of the request
 		char *content_length = get_header_value(req.headers, req.headers_len, "Content-Length");
 		if (!content_length) {
-			res_send_status(conn.fd, "HTTP/1.1", 411, "Length Required");
-
-			res_send_gmtime(conn);
-			res_send_headerf(conn.fd, "Server", SERVER);
-			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_default(conn, 411, "Length Required");
 			res_send_end(conn.fd);
 
 			return;
@@ -79,11 +71,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 		// if the request is too big, send a 413 Request Entity Too Large
 		if (content_length_int > MAX_REQUEST_SIZE) {
-			res_send_status(conn.fd, "HTTP/1.1", 413, "Request Entity Too Large");
-
-			res_send_gmtime(conn);
-			res_send_headerf(conn.fd, "Server", SERVER);
-			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_default(conn, 413, "Request Entity Too Large");
 			res_send_end(conn.fd);
 
 			return;
@@ -93,11 +81,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		char *body = xcalloc(content_length_int + 1, sizeof(char));
 		if (recv(conn.fd, body, content_length_int, 0) < 0) {
 			// send a 500 Internal Server Error response
-			res_send_status(conn.fd, "HTTP/1.1", 500, "Internal Server Error");
-
-			res_send_gmtime(conn);
-			res_send_headerf(conn.fd, "Server", SERVER);
-			res_send_headerf(conn.fd, "Connection", "close");
+			res_send_default(conn, 500, "Internal Server Error");
 			res_send_end(conn.fd);
 
 			return;
@@ -109,11 +93,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		xfree(body);
 
 		// send a 204 No Content response
-		res_send_status(conn.fd, "HTTP/1.1", 204, "No Content");
-
-		res_send_gmtime(conn);
-		res_send_headerf(conn.fd, "Server", SERVER);
-		res_send_headerf(conn.fd, "Connection", "close");
+		res_send_default(conn, 204, "No Content");
 		res_send_end(conn.fd);
 
 		return;
@@ -121,23 +101,15 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 	// check for dissalowed methods
 	if (!(!strcmp(req.method, "GET") || !strcmp(req.method, "HEAD"))) {
-		res_send_status(conn.fd, "HTTP/1.1", 405, "Method Not Allowed");
-	
-		res_send_headerf(conn.fd, "Server", SERVER);
-		res_send_gmtime(conn);
+		res_send_default(conn, 405, "Method Not Allowed");
 		res_send_headerf(conn.fd, "Allow", "GET, HEAD");
-		res_send_headerf(conn.fd, "Connection", "close");
 		res_send_end(conn.fd);
 		return;
 	}
 
 	if (!strcmp(parsed_url, "/status")) {
-		res_send_status(conn.fd, "HTTP/1.1", 200, "OK");
-
-		res_send_headerf(conn.fd, "Server", SERVER);
-		res_send_gmtime(conn);
+		res_send_default(conn, 200, "OK");
 		res_send_headerf(conn.fd, "Content-Type", "text/plain");
-		res_send_headerf(conn.fd, "Connection", "close");
 		res_send_end(conn.fd);
 
 		int fd = open("/proc/self/status", O_RDONLY);
@@ -169,11 +141,8 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		int fd = open(path, O_RDONLY);
 
 		if (fd == -1) {
-			res_send_status(conn.fd, "HTTP/1.1", 503, "Service Unavaliable");
-			res_send_headerf(conn.fd, "Server", SERVER);
-			res_send_gmtime(conn);
+			res_send_default(conn, 503, "Service Unavaliable");
 			res_send_headerf(conn.fd, "Content-Type", "text/plain");
-			res_send_headerf(conn.fd, "Connection", "close");
 			res_send_end(conn.fd);
 
 			dprintf(conn.fd, "Error: %s\n", strerror(errno));
@@ -181,10 +150,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 			return;
 		}
 
-		res_send_status(conn.fd, "HTTP/1.1", 200, "OK");
-
-		res_send_headerf(conn.fd, "Server", SERVER);
-		res_send_gmtime(conn);
+		res_send_default(conn, 200, "OK");
 		char *download_sel = get_selector_value(query_selectors, query_selectors_len, "download");
 		if (download_sel && !strcmp(download_sel, "true")) res_send_headerf(conn.fd, "Content-Type", "application/octet-stream");
 		else res_send_headerf(conn.fd, "Content-Type", "%s",
@@ -192,7 +158,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 							 "application/octet-stream" :
 							 path_to_mime(path));
 		res_send_headerf(conn.fd, "Content-Length", "%ld", path_stat.st_size);
-		res_send_headerf(conn.fd, "Connection", "close");
 		res_send_end(conn.fd);
 
 		if (!strcmp(req.method, "GET")) {
@@ -205,11 +170,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	}
 
 	// if this point is reached, a resource wasn't found, thus 404
-	res_send_status(conn.fd, "HTTP/1.1", 404, "Not Found");
-	res_send_gmtime(conn);
-	res_send_headerf(conn.fd, "Server", SERVER);
-	res_send_headerf(conn.fd, "Connection", "close");
-	res_send_end(conn.fd);
+	res_send_default(conn, 404, "Not Found");
 }
 
 void *serve_request(void *conn_p) {
@@ -232,12 +193,8 @@ void *serve_request(void *conn_p) {
 		   conn.fd, ip, htons(conn.data.sin_port), req.method, req.url, req.ver);
 
 	if (req_status || url_status || check_url(parsed_url)) {
-		res_send_status(conn.fd, "HTTP/1.1", 400, "Bad Request");
-		
-		res_send_headerf(conn.fd, "Server", SERVER);
-		res_send_gmtime(conn);
+		res_send_default(conn, 400, "Bad Request");
 		res_send_headerf(conn.fd, "Content-Type", "text/plain");
-		res_send_headerf(conn.fd, "Connection", "close");
 		res_send_end(conn.fd);
 
 		if (req_status || url_status) {
