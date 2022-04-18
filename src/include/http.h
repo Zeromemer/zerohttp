@@ -40,20 +40,20 @@ int parse_url(char *input, size_t input_len, char *output, query_selectors_t **q
 
 int check_url(char *url);
 
-int parse_req(int connfd, req_t *req);
+int parse_req(conn_t conn, req_t *req);
 
 char *get_header_value(header_t *headers, size_t len, char *query);
 
 char *get_selector_value(query_selectors_t *query_selectors, size_t len, char *query);
 
-int res_send_status(int connfd, char *ver, int status, char *msg);
+int res_send_status(conn_t conn, char *ver, int status, char *msg);
 
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((__format__(__printf__, 3, 4))) // printf type checking
 #endif
-int res_send_headerf(int connfd, const char *header_name, const char *format, ...);
+int res_send_headerf(conn_t conn, const char *header_name, const char *format, ...);
 
-int res_send_end(int connfd);
+int res_send_end(conn_t conn);
 
 void res_send_gmtime(conn_t conn);
 
