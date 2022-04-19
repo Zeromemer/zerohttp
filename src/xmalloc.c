@@ -43,7 +43,7 @@ void *xcalloc_inter(size_t nmemb, size_t size, char *file, int line) {
 
 void *xrealloc_inter(void *ptr, size_t size, char *file, int line) {
 	void *result = realloc(ptr, size);
-	if (!result) {
+	if (!result && size) { // realloc(NULL, 0) returns NULL, but we don't want to treat that as an error
 		fprintf(stderr, "%s:%d: realloc(%p, %ld) returned NULL\n", file, line, ptr, size);
 		raise(SIGTRAP);
 		exit(1);
@@ -57,7 +57,7 @@ void *xrealloc_inter(void *ptr, size_t size, char *file, int line) {
 
 void *xreallocarray_inter(void *ptr, size_t nmemb, size_t size, char *file, int line) {
 	void *result = reallocarray(ptr, nmemb, size);
-	if (!result) {
+	if (!result && nmemb && size) { // reallocarray(NULL, 0, 0) returns NULL, but we don't want to treat that as an error
 		fprintf(stderr, "%s:%d: reallocarray(%p, %ld, %ld) returned NULL\n", file, line, ptr, nmemb, size);
 		raise(SIGTRAP);
 		exit(1);

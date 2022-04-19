@@ -100,7 +100,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	}
 
 	// check for dissalowed methods
-	if (strcmp(req.method, "GET") == 0 || strcmp(req.method, "HEAD") == 0) {
+	if (strcmp(req.method, "GET") && strcmp(req.method, "HEAD")) {
 		res_send_default(conn, 405, "Method Not Allowed");
 		res_send_headerf(conn, "Allow", "GET, HEAD");
 		res_send_end(conn);

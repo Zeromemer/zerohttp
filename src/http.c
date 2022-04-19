@@ -131,7 +131,7 @@ int parse_req(conn_t conn, req_t *req) {
 		req->method[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			req->method = xrealloc(req->method, size);
+			req->method = xrealloc(req->method, size); // size is sometimes 0. I know this onlt because of a bug in xrealloc_inter
 		}
 	}
 	req->method[len] = '\0';
