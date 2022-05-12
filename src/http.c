@@ -10,8 +10,17 @@
 
 #define SRH_BUFF_SIZE 8192
 
+#define MAX_METHOD_SIZE 32
+#define MAX_URL_SIZE 2048
+#define MAX_VER_SIZE 16
+#define MAX_HEADERS_SIZE 2048
+
 char *http_err_strings[] = {
 	NULL,
+	"Method too long",
+	"URL too long",
+	"Version too long",
+	"Header too long",
 	"Malformed URL",
 	"Invalid URL line",
 	"Invalid CRLF after header",
@@ -128,6 +137,10 @@ int parse_req(conn_t conn, req_t *req) {
 
 	char c;
 	while ((c = dgetc(conn.fd)) != ' ') {
+		if (size > MAX_METHOD_SIZE) {
+			free_req(*req);
+			return METHOD_TOO_LONG;
+		}
 		req->method[len] = c;
 		if (size == ++len) {
 			size *= 2;
@@ -143,10 +156,14 @@ int parse_req(conn_t conn, req_t *req) {
 	req->url = xcalloc(size, 1);
 
 	while ((c = dgetc(conn.fd)) != ' ') {
+		if (size > MAX_URL_SIZE) {
+			free_req(*req);
+			return URL_TOO_LONG;
+		}
 		req->url[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			req->url = xrealloc(req->url, size); // size is sometimes 0. I know this onlt because of a bug in xrealloc_inter
+			req->url = xrealloc(req->url, size); // size is sometimes 0. I know this only because of a bug in xrealloc_inter
 		}
 	}
 	req->url[len] = '\0';
@@ -161,6 +178,10 @@ int parse_req(conn_t conn, req_t *req) {
 	req->ver = xcalloc(size, 1);
 
 	while ((c = dgetc(conn.fd)) != '\r') {
+		if (size > MAX_VER_SIZE) {
+			free_req(*req);
+			return VER_TOO_LONG;
+		}
 		req->ver[len] = c;
 		if (size == ++len) {
 			size *= 2;
@@ -209,6 +230,10 @@ int parse_req(conn_t conn, req_t *req) {
 						header_size);
 			}
 
+			if (header_size > MAX_HEADERS_SIZE) {
+				free_req(*req);
+				return HEADER_TOO_LONG;
+			}
 
 			c = dgetc(conn.fd);
 			if (c == '\r') {
@@ -308,11 +333,13 @@ void free_req(req_t req) {
 	xfree(req.url);
 	xfree(req.ver);
 
-	for (int i = 0; i < req.headers_len; i++) {
-		xfree(req.headers[i].name);
-		
-		// this is what I would do if name and value werent on the same memory block
-		// free(req.headers[i].value);
+	if (req.headers) {
+		for (int i = 0; i < req.headers_len; i++) {
+			xfree(req.headers[i].name);
+
+			// this is what I would do if name and value werent on the same memory block
+			// free(req.headers[i].value);
+		}
 	}
 	xfree(req.headers);
 }

@@ -23,6 +23,10 @@ typedef struct {
 
 enum http_req_err_t {
 	NONE,
+	METHOD_TOO_LONG,
+	URL_TOO_LONG,
+	VER_TOO_LONG,
+	HEADER_TOO_LONG,
 	URL,
 	URL_LINE,
 	HEADER,

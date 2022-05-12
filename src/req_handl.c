@@ -183,28 +183,46 @@ void *serve_request(void *conn_p) {
 
 	char *ip = inet_ntoa(conn.data.sin_addr);
 
+	if (req_status != 0) {
+		// send a 400 Bad Request response
+		res_send_default(conn, 400, "Bad Request");
+		res_send_end(conn);
+		// send error
+		dprintf(conn.fd, "Error: %s\n", http_strerror(req_status));
+		close(conn.fd);
+		return NULL;
+	}
+
 	char *parsed_url = xcalloc(strlen(req.url) + 1, sizeof(char));
 	query_selectors_t *query_selectors = NULL;
 	size_t query_selectors_len = 0;
 	int url_status = parse_url(req.url, strlen(req.url), parsed_url, &query_selectors, &query_selectors_len);
 
+	if (url_status != 0) {
+		// send a 400 Bad Request response
+		res_send_default(conn, 400, "Bad Request");
+		res_send_end(conn);
+		// send error
+		dprintf(conn.fd, "Error: %s\n", http_strerror(url_status));
+		close(conn.fd);
+		return NULL;
+	}
+
+	if (check_url(parsed_url) != 0) {
+		// send a 400 Bad Request response
+		res_send_default(conn, 400, "Bad Request");
+		res_send_end(conn);
+		// send error
+		dprintf(conn.fd, "Error: %s\n", "URL cannot contain ../");
+		close(conn.fd);
+		return NULL;
+	}
+
 
 	printf("\033[32m->\033[0m [%02d:%02d:%02d] Opened connection %d: %s:%d: %s %s %s\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec,
 		   conn.fd, ip, htons(conn.data.sin_port), req.method, req.url, req.ver);
 
-	if (req_status || url_status || check_url(parsed_url)) {
-		res_send_default(conn, 400, "Bad Request");
-		res_send_headerf(conn, "Content-Type", "text/plain");
-		res_send_end(conn);
-
-		if (req_status || url_status) {
-			dprintf(conn.fd, "Error: %s\n", http_strerror((req_status ? req_status : url_status)));
-		} else {
-			dprintf(conn.fd, "Error: \"..\" isn't allowed in URL\n");
-		}
-	} else {
-		serve_regular_request(conn, req, parsed_url, query_selectors, query_selectors_len);
-	}
+	serve_regular_request(conn, req, parsed_url, query_selectors, query_selectors_len);
 
 	free_req(req);
 	xfree(query_selectors);
