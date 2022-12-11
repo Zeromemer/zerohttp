@@ -17,9 +17,16 @@ int create_bound_socket(int port) {
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1) {
-		fprintf(stderr, "Could not open socket %s\n", strerror(errno));
+		fprintf(stderr, "Could not open socket: %s\n", strerror(errno));
 		exit(1);
 	}
+
+	int optval = 1;
+	int opt = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+	if (opt == -1) {
+		fprintf(stderr, "Could not set option for socket: %s\n", strerror(errno));
+	}
+
 	bzero(&servaddr, sizeof(servaddr));
 
 	servaddr.sin_family = AF_INET;
