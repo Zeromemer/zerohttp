@@ -336,9 +336,6 @@ void free_req(req_t req) {
 	if (req.headers) {
 		for (int i = 0; i < req.headers_len; i++) {
 			xfree(req.headers[i].name);
-
-			// this is what I would do if name and value werent on the same memory block
-			// free(req.headers[i].value);
 		}
 	}
 	xfree(req.headers);

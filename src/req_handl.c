@@ -31,8 +31,6 @@ void res_send_default(conn_t conn, int status, char *msg) {
 }
 
 void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
-
-	// if the path == "/file_test" print the body of the request
 	if (strcmp(parsed_url, "/file_test") == 0) {
 		if (strncmp(req.method, "POST", 4) != 0) {
 			res_send_default(conn, 405, "Method Not Allowed");
@@ -41,7 +39,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 			return;
 		}
 
-		// get Content-Type
 		char *content_type = get_header_value(req.headers, req.headers_len, "Content-Type");
 		if (content_type == NULL) {
 			res_send_default(conn, 415, "Unsupported Media Type");
@@ -50,7 +47,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 			return;
 		}
 
-		// if Content-Type isn't with main type "text" return 415 Unsupported Media Type
 		if (strncmp(content_type, "text", 4) != 0) {
 			res_send_default(conn, 415, "Unsupported Media Type");
 			res_send_end(conn);
@@ -59,7 +55,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		}
 
 
-		// get the Content-Length of the request
 		char *content_length = get_header_value(req.headers, req.headers_len, "Content-Length");
 		if (!content_length) {
 			res_send_default(conn, 411, "Length Required");
@@ -69,7 +64,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		}
 		int content_length_int = atoi(content_length);
 
-		// if the request is too big, send a 413 Request Entity Too Large
 		if (content_length_int > MAX_REQUEST_SIZE) {
 			res_send_default(conn, 413, "Request Entity Too Large");
 			res_send_end(conn);
@@ -77,29 +71,24 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 			return;
 		}
 
-		// get the body of the request
 		char *body = xcalloc(content_length_int + 1, sizeof(char));
 		if (recv(conn.fd, body, content_length_int, 0) < 0) {
-			// send a 500 Internal Server Error response
 			res_send_default(conn, 500, "Internal Server Error");
 			res_send_end(conn);
 
 			return;
 		}
 		
-		// null terminate the body and print it
 		body[content_length_int] = '\0';
 		printf("%s\n", body);
 		xfree(body);
 
-		// send a 204 No Content response
 		res_send_default(conn, 204, "No Content");
 		res_send_end(conn);
 
 		return;
 	}
 
-	// check for dissalowed methods
 	if (strcmp(req.method, "GET") && strcmp(req.method, "HEAD")) {
 		res_send_default(conn, 405, "Method Not Allowed");
 		res_send_headerf(conn, "Allow", "GET, HEAD");
@@ -131,12 +120,10 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 	struct stat path_stat;
 
-	// if url points to dir append "index.html" at the end
 	if (lstat(path, &path_stat) != -1 && S_ISDIR(path_stat.st_mode) && path[strlen(path) - 1] == '/') {
 		strcat(path, "index.html");
 	}
 
-	// if file exists at path, send it
 	if (lstat(path, &path_stat) != -1 && S_ISREG(path_stat.st_mode)) {
 		int fd = open(path, O_RDONLY);
 
@@ -161,7 +148,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		res_send_end(conn);
 
 		if (strcmp(req.method, "GET") == 0) {
-			// send file by chunks of 4069 bytes
 			while (sendfile(conn.fd, fd, NULL, CHUNK_SIZE) == CHUNK_SIZE);
 		}
 		
