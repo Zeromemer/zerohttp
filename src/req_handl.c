@@ -155,7 +155,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		return;
 	}
 
-	// if this point is reached, a resource wasn't found, thus 404
 	res_send_default(conn, 404, "Not Found");
 }
 
@@ -170,10 +169,8 @@ void *serve_request(void *conn_p) {
 	char *ip = inet_ntoa(conn.data.sin_addr);
 
 	if (req_status != 0) {
-		// send a 400 Bad Request response
 		res_send_default(conn, 400, "Bad Request");
 		res_send_end(conn);
-		// send error
 		dprintf(conn.fd, "Error: %s\n", http_strerror(req_status));
 		close(conn.fd);
 		return NULL;
@@ -185,20 +182,16 @@ void *serve_request(void *conn_p) {
 	int url_status = parse_url(req.url, strlen(req.url), parsed_url, &query_selectors, &query_selectors_len);
 
 	if (url_status != 0) {
-		// send a 400 Bad Request response
 		res_send_default(conn, 400, "Bad Request");
 		res_send_end(conn);
-		// send error
 		dprintf(conn.fd, "Error: %s\n", http_strerror(url_status));
 		close(conn.fd);
 		return NULL;
 	}
 
 	if (check_url(parsed_url) != 0) {
-		// send a 400 Bad Request response
 		res_send_default(conn, 400, "Bad Request");
 		res_send_end(conn);
-		// send error
 		dprintf(conn.fd, "Error: %s\n", "URL cannot contain ../");
 		close(conn.fd);
 		return NULL;
