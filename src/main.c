@@ -21,16 +21,13 @@ int main(int argc, char **argv) {
 	char *port_s = argv[1];
 	int port = port_s ? atoi(port_s) : 42069;
 	if (port > 65535 || port < 1) {
-		fprintf(stderr, "Port %d out of range\n", port); // if libc isn't going to check the port number, I will
+		fprintf(stderr, "Port %d out of range\n", port);
 		return 1;
 	}
-
 	signal(SIGPIPE, signal_handler);
 	
 	int sockfd = create_bound_socket(port);
-
 	socket_listen(sockfd, 5);
-
 	printf("Listening on port %d\n", port);
 	for (;;) {
 		conn_t *conn = xcalloc(1, sizeof(conn_t));

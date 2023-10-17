@@ -163,7 +163,7 @@ int parse_req(conn_t conn, req_t *req) {
 		req->url[len] = c;
 		if (size == ++len) {
 			size *= 2;
-			req->url = xrealloc(req->url, size); // size is sometimes 0. I know this only because of a bug in xrealloc_inter
+			req->url = xrealloc(req->url, size);
 		}
 	}
 	req->url[len] = '\0';
@@ -201,7 +201,6 @@ int parse_req(conn_t conn, req_t *req) {
 	req->headers = xcalloc(req->headers_alloc_len , sizeof(header_t));
 
 	for (;;) {
-		// check if we've reached the end of the headers section
 		if ((c = dgetc(conn.fd)) == '\r') {
 			if (dgetc(conn.fd) == '\n')
 				break;

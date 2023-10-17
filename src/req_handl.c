@@ -116,8 +116,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 	strcat_mod(path, srcs_dir, parsed_url);
 
-
-
 	struct stat path_stat;
 
 	if (lstat(path, &path_stat) != -1 && S_ISDIR(path_stat.st_mode) && path[strlen(path) - 1] == '/') {
