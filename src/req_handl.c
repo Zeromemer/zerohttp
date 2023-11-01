@@ -156,7 +156,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	res_send_default(conn, 404, "Not Found");
 }
 
-void *serve_request(void *conn_p) {
+void serve_request(conn_t *conn_p) {
 	conn_t conn = *(conn_t*)conn_p;
 	xfree(conn_p);
 	struct tm time_created;
@@ -171,7 +171,7 @@ void *serve_request(void *conn_p) {
 		res_send_end(conn);
 		dprintf(conn.fd, "Error: %s\n", http_strerror(req_status));
 		close(conn.fd);
-		return NULL;
+		return;
 	}
 
 	char *parsed_url = xcalloc(strlen(req.url) + 1, sizeof(char));
@@ -184,7 +184,7 @@ void *serve_request(void *conn_p) {
 		res_send_end(conn);
 		dprintf(conn.fd, "Error: %s\n", http_strerror(url_status));
 		close(conn.fd);
-		return NULL;
+		return;
 	}
 
 	if (check_url(parsed_url) != 0) {
@@ -192,7 +192,7 @@ void *serve_request(void *conn_p) {
 		res_send_end(conn);
 		dprintf(conn.fd, "Error: %s\n", "URL cannot contain ../");
 		close(conn.fd);
-		return NULL;
+		return;
 	}
 
 
@@ -209,6 +209,4 @@ void *serve_request(void *conn_p) {
 	time_t current_time = time(NULL);
 	localtime_r(&current_time, &time_closed);
 	printf("\033[31m<-\033[0m [%02d:%02d:%02d] Closed connection %d.\n", time_closed.tm_hour, time_closed.tm_min, time_closed.tm_sec, conn.fd);
-	
-	return NULL;
 }

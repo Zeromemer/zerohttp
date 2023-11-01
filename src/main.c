@@ -13,8 +13,27 @@
 #include "include/xmalloc.h"
 #include "include/req_handl.h"
 
+#define MAX_THREAD_COUNT 12
+
+static int thread_count = 0;
+static int maxed_out = 0;
+pthread_mutex_t tc_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t main_lock = PTHREAD_MUTEX_INITIALIZER;
+
 void signal_handler(int signal) {
 	printf("catch signal %d\n", signal);
+}
+
+void *conn_handle(void *conn_p) {
+	serve_request(conn_p);
+	pthread_mutex_lock(&tc_lock);
+	thread_count--;
+	if (maxed_out) {
+		maxed_out = 0;
+		pthread_mutex_unlock(&main_lock);
+	}
+	pthread_mutex_unlock(&tc_lock);
+	return NULL;
 }
 
 int main(int argc, char **argv) {
@@ -38,8 +57,21 @@ int main(int argc, char **argv) {
 			continue;
 		}
 
+		if (maxed_out) {
+			pthread_mutex_lock(&main_lock);
+			pthread_mutex_unlock(&main_lock);
+		}
+		
+		pthread_mutex_lock(&tc_lock);
+		thread_count++;
+		if (thread_count >= MAX_THREAD_COUNT) {
+			maxed_out = 1;
+			pthread_mutex_lock(&main_lock);
+		}
+		pthread_mutex_unlock(&tc_lock);
+
 		pthread_t thread;
-		pthread_create(&thread, NULL, serve_request, conn);
+		pthread_create(&thread, NULL, conn_handle, conn);
 		pthread_detach(thread);
 	}
 }
