@@ -103,7 +103,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 		int fd = open("/proc/self/status", O_RDONLY);
 		
-		char buff[1024];
+		char buff[3072];
 		int bytes_read = read(fd, buff, sizeof(buff));
 		write(conn.fd, buff, bytes_read);
 		
