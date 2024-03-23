@@ -10,10 +10,15 @@
 
 #define SRH_BUFF_SIZE 8192
 
+#define INITIAL_METHOD_SIZE 8
+#define INITIAL_URL_SIZE 128
+#define INITIAL_VER_SIZE 16
+#define INITIAL_HEADER_SIZE 256
+
 #define MAX_METHOD_SIZE 32
 #define MAX_URL_SIZE 2048
 #define MAX_VER_SIZE 16
-#define MAX_HEADERS_SIZE 2048
+#define MAX_HEADER_SIZE 2048
 
 char *http_err_strings[] = {
 	NULL,
@@ -131,7 +136,7 @@ int check_url(char *url) {
 
 int parse_req(conn_t conn, req_t *req) {
 	// get the method
-	unsigned int size = 1;
+	unsigned int size = INITIAL_METHOD_SIZE;
 	unsigned int len = 0;
 	req->method = xcalloc(size, 1);
 
@@ -151,7 +156,7 @@ int parse_req(conn_t conn, req_t *req) {
 
 
 	// get the url
-	size = 1;
+	size = INITIAL_URL_SIZE;
 	len = 0;
 	req->url = xcalloc(size, 1);
 
@@ -173,7 +178,7 @@ int parse_req(conn_t conn, req_t *req) {
 
 
 	// get http version
-	size = 1;
+	size = INITIAL_VER_SIZE;
 	len = 0;
 	req->ver = xcalloc(size, 1);
 
@@ -192,7 +197,6 @@ int parse_req(conn_t conn, req_t *req) {
 	if (dgetc(conn.fd) != '\n') {
 		return URL_LINE;
 	}
-	
 
 
 	// get headers
@@ -209,15 +213,13 @@ int parse_req(conn_t conn, req_t *req) {
 			}
 		}
 
-		
-		unsigned int header_size = 1;
+		unsigned int header_size = INITIAL_HEADER_SIZE;
 		unsigned int header_len = 0;
 		req->headers[req->headers_len].name = xcalloc(header_size, 1);
 		if (req->headers_alloc_len == req->headers_len + 1) {
 			req->headers_alloc_len *= 2;
 			req->headers = xreallocarray(req->headers, req->headers_alloc_len, sizeof(header_t));
 		}
-
 
 
 		for (;;) {
@@ -229,7 +231,7 @@ int parse_req(conn_t conn, req_t *req) {
 						header_size);
 			}
 
-			if (header_size > MAX_HEADERS_SIZE) {
+			if (header_size > MAX_HEADER_SIZE) {
 				free_req(*req);
 				return HEADER_TOO_LONG;
 			}
