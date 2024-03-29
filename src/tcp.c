@@ -41,9 +41,8 @@ int create_bound_socket(int port) {
 	return sockfd;
 }
 
-
 void socket_listen(int sockfd, int backlog) {
-	if (listen(sockfd, backlog)) {
+	if (listen(sockfd, backlog) == -1) {
 		fprintf(stderr, "Could not listen to socket: %s\n", strerror(errno));
 		exit(1);
 	}
