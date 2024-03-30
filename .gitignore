@@ -3,5 +3,5 @@ zerohttp
 *.swp
 *.o
 *.temp
-req_src/*
+content/*
 obj/*

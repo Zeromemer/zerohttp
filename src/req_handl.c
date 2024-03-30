@@ -20,7 +20,7 @@
 #define SERVER "zerohttp"
 #define MAX_REQUEST_SIZE 8192
 
-char *srcs_dir = "./req_src";
+char *srcs_dir = "./content";
 
 void res_send_default(conn_t conn, int status, char *msg) {
 	res_send_status(conn, "HTTP/1.1", status, msg);

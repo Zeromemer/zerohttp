@@ -1,10 +1,10 @@
 # zerohttp
-This is a very basic http server made in c (still in development)  
-files are served from req_src/ (e.g. http://ip:port/index.html -> ./req_src/index.html)
+This is a very basic http server made in C  
+files are served from content/ (e.g. http://ip:port/index.html -> ./content/index.html)
 
 ## Setup
 ```console
-$ mkdir obj req_src
+$ mkdir obj content
 ```
 
 ## Building
