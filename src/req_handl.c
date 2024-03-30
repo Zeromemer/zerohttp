@@ -72,7 +72,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		}
 
 		char *body = xcalloc(content_length_int + 1, sizeof(char));
-		if (recv(conn.fd, body, content_length_int, 0) < 0) {
+		if (recv(conn.fd, body, content_length_int, 0) != 0) {
 			res_send_default(conn, 500, "Internal Server Error");
 			res_send_end(conn);
 
@@ -107,7 +107,6 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		int bytes_read = read(fd, buff, sizeof(buff));
 		write(conn.fd, buff, bytes_read);
 		
-
 		close(fd);
 		return;
 	}
@@ -154,6 +153,7 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	}
 
 	res_send_default(conn, 404, "Not Found");
+	res_send_end(conn);
 }
 
 void serve_request(conn_t *conn_p) {
