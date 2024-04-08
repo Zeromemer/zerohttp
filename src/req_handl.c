@@ -164,7 +164,8 @@ void serve_request(conn_t *conn_p) {
 	req_t req = {0};
 	int req_status = parse_req(conn, &req);
 
-	char *ip = inet_ntoa(conn.data.sin_addr);
+	char ip[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(conn.data.sin_addr), ip, INET_ADDRSTRLEN);
 
 	if (req_status != 0) {
 		res_send_default(conn, 400, "Bad Request");
