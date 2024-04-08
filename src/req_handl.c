@@ -117,7 +117,15 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 
 	struct stat path_stat;
 
-	if (lstat(path, &path_stat) != -1 && S_ISDIR(path_stat.st_mode) && path[strlen(path) - 1] == '/') {
+	if (lstat(path, &path_stat) != -1 && S_ISDIR(path_stat.st_mode)) {
+		if (path[strlen(path) - 1] != '/') {
+			res_send_default(conn, 302, "Found");
+			res_send_headerf(conn, "Location", "%s/", parsed_url);
+			res_send_end(conn);
+
+			return;
+		}
+
 		strcat(path, "index.html");
 	}
 
