@@ -8,8 +8,6 @@
 #include <signal.h>
 
 #include "include/tcp.h"
-#include "include/http.h"
-#include "include/misc.h"
 #include "include/xmalloc.h"
 #include "include/req_handl.h"
 
