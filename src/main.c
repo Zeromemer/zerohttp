@@ -6,17 +6,47 @@
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
+#include <argp.h>
 
 #include "include/tcp.h"
 #include "include/xmalloc.h"
 #include "include/req_handl.h"
 
-#define MAX_THREAD_COUNT 12
-
 static int thread_count = 0;
 static int maxed_out = 0;
 pthread_mutex_t tc_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t main_lock = PTHREAD_MUTEX_INITIALIZER;
+
+struct arguments {
+	int port;
+	int threads;
+};
+
+static char doc[] = "A very basic http server made in C";
+
+static struct argp_option options[] = {
+	{"number", 'j', "NUM", 0, "Number of threads to use"},
+	{"number", 'p', "NUM", 0, "Port to bind server to"},
+	{0}
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+	struct arguments *arguments = state->input;
+
+	switch (key) {
+		case 'p':
+			arguments->port = atoi(arg);
+			break;
+		case 'j':
+			arguments->threads = atoi(arg);
+			break;
+		default:
+		return ARGP_ERR_UNKNOWN;
+    }
+    return 0;
+}
+
+static struct argp argp = {options, parse_opt, NULL, doc};
 
 void signal_handler(int signal) {
 	printf("catch signal %d\n", signal);
@@ -24,6 +54,7 @@ void signal_handler(int signal) {
 
 void *conn_handle(void *conn_p) {
 	serve_request(conn_p);
+
 	pthread_mutex_lock(&tc_lock);
 	thread_count--;
 	if (maxed_out) {
@@ -35,17 +66,16 @@ void *conn_handle(void *conn_p) {
 }
 
 int main(int argc, char **argv) {
-	char *port_s = argv[1];
-	int port = port_s ? atoi(port_s) : 42069;
-	if (port > 65535 || port < 1) {
-		fprintf(stderr, "Port %d out of range\n", port);
-		return 1;
-	}
+	struct arguments arguments;
+	arguments.port = 42069;
+	arguments.threads = 6;
+	argp_parse(&argp, argc, argv, 0, 0, &arguments);
+
 	signal(SIGPIPE, signal_handler);
 	
-	int sockfd = create_bound_socket(port);
+	int sockfd = create_bound_socket(arguments.port);
 	socket_listen(sockfd, 5);
-	printf("Listening on port %d\n", port);
+	printf("Listening on port %d\n", arguments.port);
 	for (;;) {
 		conn_t *conn = xcalloc(1, sizeof(conn_t));
 		int status = await_connection(sockfd, conn);
@@ -62,7 +92,7 @@ int main(int argc, char **argv) {
 		
 		pthread_mutex_lock(&tc_lock);
 		thread_count++;
-		if (thread_count >= MAX_THREAD_COUNT) {
+		if (thread_count >= arguments.threads) {
 			maxed_out = 1;
 			pthread_mutex_lock(&main_lock);
 		}
