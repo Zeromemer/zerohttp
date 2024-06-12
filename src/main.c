@@ -31,8 +31,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 	arguments_t *arguments = state->input;
 
 	switch (key) {
-		case 'p':
-			arguments->port = atoi(arg);
+		case 'j':
+			arguments->threads = atoi(arg);
 			break;
 		case 'd':
 			arguments->directory = arg;
