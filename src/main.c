@@ -23,10 +23,10 @@ struct arguments {
 };
 
 static char doc[] = "A very basic http server made in C";
+static char args_doc[] = "PORT";
 
 static struct argp_option options[] = {
 	{"threads", 'j', "NUM", 0, "Number of threads to use"},
-	{"port", 'p', "NUM", 0, "Port to bind server to"},
 	{0}
 };
 
@@ -37,8 +37,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 		case 'p':
 			arguments->port = atoi(arg);
 			break;
-		case 'j':
-			arguments->threads = atoi(arg);
+		case ARGP_KEY_ARG:
+			if (state->arg_num != 0)
+				return ARGP_ERR_UNKNOWN;
+			arguments->port = atoi(arg);
 			break;
 		default:
 		return ARGP_ERR_UNKNOWN;
@@ -46,7 +48,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     return 0;
 }
 
-static struct argp argp = {options, parse_opt, NULL, doc};
+static struct argp argp = {options, parse_opt, args_doc, doc};
 
 void signal_handler(int signal) {
 	printf("catch signal %d\n", signal);
