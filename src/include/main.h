@@ -1,6 +1,10 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-// This file has no purpose except for a blood sacrifice to the Makefile
+typedef struct {
+	int port;
+	int threads;
+	char *directory;
+} arguments_t;
 
 #endif

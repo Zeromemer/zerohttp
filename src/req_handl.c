@@ -20,8 +20,6 @@
 #define SERVER "zerohttp"
 #define MAX_REQUEST_SIZE 8192
 
-char *srcs_dir = "./content";
-
 void res_send_default(conn_t conn, int status, char *msg) {
 	res_send_status(conn, "HTTP/1.1", status, msg);
 
@@ -30,7 +28,7 @@ void res_send_default(conn_t conn, int status, char *msg) {
 	res_send_headerf(conn, "Connection", "close");
 }
 
-void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
+void serve_regular_request(conn_t conn, req_t req, char *directory, char *parsed_url, query_selectors_t *query_selectors, size_t query_selectors_len) {
 	if (strcmp(parsed_url, "/file_test") == 0) {
 		if (strncmp(req.method, "POST", 4) != 0) {
 			res_send_default(conn, 405, "Method Not Allowed");
@@ -111,9 +109,9 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 		return;
 	}
 	
-	char path[strlen(srcs_dir) + strlen(parsed_url) + sizeof("index.html")];
+	char path[strlen(directory) + strlen(parsed_url) + sizeof("index.html")];
 
-	strcat_mod(path, srcs_dir, parsed_url);
+	strcat_mod(path, directory, parsed_url);
 
 	struct stat path_stat;
 
@@ -164,9 +162,8 @@ void serve_regular_request(conn_t conn, req_t req, char *parsed_url, query_selec
 	res_send_end(conn);
 }
 
-void serve_request(conn_t *conn_p) {
-	conn_t conn = *(conn_t*)conn_p;
-	xfree(conn_p);
+void serve_request(request_params_t *request_params) {
+	conn_t conn = request_params->conn;
 	struct tm time_created;
 	localtime_r(&conn.time_created, &time_created);
 	req_t req = {0};
@@ -208,8 +205,9 @@ void serve_request(conn_t *conn_p) {
 	printf("\033[32m->\033[0m [%02d:%02d:%02d] Opened connection %d: %s:%d: %s %s %s\n", time_created.tm_hour, time_created.tm_min, time_created.tm_sec,
 		   conn.fd, ip, htons(conn.data.sin_port), req.method, req.url, req.ver);
 
-	serve_regular_request(conn, req, parsed_url, query_selectors, query_selectors_len);
+	serve_regular_request(conn, req, request_params->arguments.directory, parsed_url, query_selectors, query_selectors_len);
 
+	xfree(request_params);
 	free_req(req);
 	xfree(query_selectors);
 	xfree(parsed_url);
