@@ -25,8 +25,8 @@ struct arguments {
 static char doc[] = "A very basic http server made in C";
 
 static struct argp_option options[] = {
-	{"number", 'j', "NUM", 0, "Number of threads to use"},
-	{"number", 'p', "NUM", 0, "Port to bind server to"},
+	{"threads", 'j', "NUM", 0, "Number of threads to use"},
+	{"port", 'p', "NUM", 0, "Port to bind server to"},
 	{0}
 };
 
